@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Bootstrapper/">
+    <Project Path="src/Bootstrapper/ThingsBooksy.Bootstrapper/ThingsBooksy.Bootstrapper.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Users/">
+    <Project Path="src/Modules/Users/ThingsBooksy.Modules.Users.Api/ThingsBooksy.Modules.Users.Api.csproj" />
+    <Project Path="src/Modules/Users/ThingsBooksy.Modules.Users.Contracts/ThingsBooksy.Modules.Users.Contracts.csproj" />
+    <Project Path="src/Modules/Users/ThingsBooksy.Modules.Users.Core/ThingsBooksy.Modules.Users.Core.csproj" />
+    <Project Path="src/Modules/Users/ThingsBooksy.Modules.Users.Migrations/ThingsBooksy.Modules.Users.Migrations.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/ThingsBooksy.Shared.Abstractions/ThingsBooksy.Shared.Abstractions.csproj" />
+    <Project Path="src/Shared/ThingsBooksy.Shared.Infrastructure/ThingsBooksy.Shared.Infrastructure.csproj" />
+  </Folder>
+</Solution>

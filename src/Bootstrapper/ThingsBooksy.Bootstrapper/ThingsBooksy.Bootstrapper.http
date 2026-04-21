@@ -1,0 +1,6 @@
+@ThingsBooksy.Bootstrapper_HostAddress = http://localhost:5189
+
+GET {{ThingsBooksy.Bootstrapper_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
