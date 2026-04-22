@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ThingsBooksy.Modules.Users.Contracts.Events;
 using ThingsBooksy.Modules.Users.Core.Entities;
@@ -48,11 +49,11 @@ internal sealed class SignUpHandler : ICommandHandler<SignUpCommand>
 
         var email = command.Email.ToLowerInvariant();
 
-        if (await _repository.GetByEmailAsync(email) is not null)
+        if (await _repository.GetByEmailAsync(email, cancellationToken) is not null)
             throw new UsersDomainException("Email is already in use.");
 
         var roleName = string.IsNullOrWhiteSpace(command.Role) ? DefaultRole : command.Role.ToLowerInvariant();
-        var role = await _repository.GetRoleAsync(roleName)
+        var role = await _repository.GetRoleAsync(roleName, cancellationToken)
             ?? throw new UsersDomainException($"Role '{roleName}' was not found.");
 
         var jobTitle = string.IsNullOrWhiteSpace(command.JobTitle)
@@ -69,8 +70,20 @@ internal sealed class SignUpHandler : ICommandHandler<SignUpCommand>
             CreatedAt = _clock.CurrentDate()
         };
 
-        await _repository.AddUserAsync(user);
+        try
+        {
+            await _repository.AddUserAsync(user, cancellationToken);
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            throw new UsersDomainException("Email is already in use.");
+        }
+
         await _messageBroker.PublishAsync(new SignedUp(user.Id, email, role.Name, jobTitle), cancellationToken);
         _logger.LogInformation("User with ID: '{UserId}' has signed up.", user.Id);
     }
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException ex)
+        => ex.InnerException?.Message.Contains("unique", StringComparison.OrdinalIgnoreCase) == true
+        || ex.InnerException?.Message.Contains("duplicate", StringComparison.OrdinalIgnoreCase) == true;
 }

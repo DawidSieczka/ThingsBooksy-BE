@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ThingsBooksy.Modules.Users.Core.DAL;
@@ -12,8 +13,8 @@ internal sealed class SignInRepository : ISignInRepository
     public SignInRepository(UsersDbContext dbContext)
         => _dbContext = dbContext;
 
-    public Task<User?> GetByEmailAsync(string email)
+    public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
         => _dbContext.Users
             .Include(u => u.Role)
-            .SingleOrDefaultAsync(u => u.Email == email);
+            .SingleOrDefaultAsync(u => u.Email == email, cancellationToken);
 }

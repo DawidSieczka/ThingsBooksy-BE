@@ -48,8 +48,11 @@ internal sealed class SignInHandler : ICommandHandler<SignInCommand>
         if (string.IsNullOrWhiteSpace(command.Password))
             throw new UsersDomainException("Password cannot be empty.");
 
-        var user = await _repository.GetByEmailAsync(command.Email.ToLowerInvariant());
-        if (user is null || !_passwordManager.IsValid(command.Password, user.Password))
+        var user = await _repository.GetByEmailAsync(command.Email.ToLowerInvariant(), cancellationToken);
+
+        // Always run password verification to prevent timing-based email enumeration.
+        var storedHash = user?.Password ?? "$2a$11$dummy.hash.to.prevent.timing.attack.padding.x";
+        if (user is null || !_passwordManager.IsValid(command.Password, storedHash))
             throw new UsersDomainException("Invalid credentials.");
 
         var claims = new Dictionary<string, IEnumerable<string>>

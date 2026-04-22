@@ -23,6 +23,6 @@ internal class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.Property(x => x.Permissions).Metadata.SetValueComparer(
             new ValueComparer<IEnumerable<string>>(
                 (c1, c2) => c1!.SequenceEqual(c2!),
-                c => c.Aggregate(0, (a, next) => HashCode.Combine(a, next.GetHashCode()))));
+                c => c.Any() ? c.Aggregate(0, (a, next) => HashCode.Combine(a, next.GetHashCode())) : 0));
     }
 }

@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ThingsBooksy.Modules.Users.Core.DAL;
@@ -12,17 +13,17 @@ internal sealed class SignUpRepository : ISignUpRepository
     public SignUpRepository(UsersDbContext dbContext)
         => _dbContext = dbContext;
 
-    public Task<User?> GetByEmailAsync(string email)
+    public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
         => _dbContext.Users
             .Include(u => u.Role)
-            .SingleOrDefaultAsync(u => u.Email == email);
+            .SingleOrDefaultAsync(u => u.Email == email, cancellationToken);
 
-    public Task<Role?> GetRoleAsync(string roleName)
-        => _dbContext.Roles.SingleOrDefaultAsync(r => r.Name == roleName);
+    public Task<Role?> GetRoleAsync(string roleName, CancellationToken cancellationToken = default)
+        => _dbContext.Roles.SingleOrDefaultAsync(r => r.Name == roleName, cancellationToken);
 
-    public async Task AddUserAsync(User user)
+    public async Task AddUserAsync(User user, CancellationToken cancellationToken = default)
     {
-        await _dbContext.Users.AddAsync(user);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.Users.AddAsync(user, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ThingsBooksy.Modules.Users.Core.DAL;
@@ -13,9 +14,9 @@ internal sealed class GetUserRepository : IGetUserRepository
     public GetUserRepository(UsersDbContext dbContext)
         => _dbContext = dbContext;
 
-    public Task<User?> GetByIdAsync(Guid userId)
+    public Task<User?> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default)
         => _dbContext.Users
             .AsNoTracking()
             .Include(u => u.Role)
-            .SingleOrDefaultAsync(u => u.Id == userId);
+            .SingleOrDefaultAsync(u => u.Id == userId, cancellationToken);
 }

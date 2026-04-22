@@ -12,5 +12,6 @@ internal class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.Email).IsRequired().HasMaxLength(500);
         builder.Property(x => x.Password).IsRequired().HasMaxLength(500);
         builder.Property(x => x.JobTitle).HasMaxLength(200);
+        builder.HasOne(x => x.Role).WithMany().HasForeignKey(x => x.RoleId);
     }
 }
