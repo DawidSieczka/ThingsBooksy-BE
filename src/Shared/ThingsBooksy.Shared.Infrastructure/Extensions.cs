@@ -74,8 +74,26 @@ public static class Extensions
             swagger.CustomSchemaIds(x => x.FullName);
             swagger.SwaggerDoc("v1", new OpenApiInfo
             {
-                Title = "MySpot API",
+                Title = "ThingsBooksy API",
                 Version = "v1"
+            });
+            swagger.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                In = ParameterLocation.Header,
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT"
+            });
+            swagger.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                    },
+                    Array.Empty<string>()
+                }
             });
         });
         
@@ -134,11 +152,16 @@ public static class Extensions
         app.UseCorrelationId();
         app.UseErrorHandling();
         app.UseSwagger();
+        app.UseSwaggerUI(ui =>
+        {
+            ui.SwaggerEndpoint("/swagger/v1/swagger.json", "ThingsBooksy API v1");
+            ui.RoutePrefix = "swagger";
+        });
         app.UseReDoc(reDoc =>
         {
             reDoc.RoutePrefix = "docs";
             reDoc.SpecUrl("/swagger/v1/swagger.json");
-            reDoc.DocumentTitle = "MySpot API";
+            reDoc.DocumentTitle = "ThingsBooksy API";
         });
         app.UseAuthentication();
         app.UseContext();
