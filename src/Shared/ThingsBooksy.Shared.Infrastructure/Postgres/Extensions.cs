@@ -86,12 +86,17 @@ public static class Extensions
         return services;
     }
 
-    public static IServiceCollection AddPostgres<T>(this IServiceCollection services, IConfiguration configuration) where T : DbContext
+    public static IServiceCollection AddPostgres<T>(this IServiceCollection services, IConfiguration configuration,
+        string? migrationsAssembly = null) where T : DbContext
     {
         var section = configuration.GetSection(SectionName);
         var options = section.BindOptions<PostgresOptions>();
         services.AddDbContext<T>(x => x
-            .UseNpgsql(options.ConnectionString)
+            .UseNpgsql(options.ConnectionString, npgsql =>
+            {
+                if (migrationsAssembly is not null)
+                    npgsql.MigrationsAssembly(migrationsAssembly);
+            })
             .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
         return services;

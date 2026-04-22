@@ -30,7 +30,7 @@ internal static class Extensions
             .AddScoped<ISignInRepository, SignInRepository>()
             .AddScoped<IGetUserRepository, GetUserRepository>()
             // Infrastructure
-            .AddPostgres<UsersDbContext>(configuration)
+            .AddPostgres<UsersDbContext>(configuration, "ThingsBooksy.Modules.Users.Migrations")
             .AddOutbox<UsersDbContext>(configuration)
             .AddUnitOfWork<UsersUnitOfWork>()
             .AddInitializer<UsersInitializer>();

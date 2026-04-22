@@ -16,15 +16,16 @@ internal sealed class UsersDbContextFactory : IDesignTimeDbContextFactory<UsersD
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: true)
+            .AddJsonFile("appsettings.Development.json", optional: true)
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("postgres")
-            ?? "Host=localhost;Database=thingsbooksy;Username=postgres;Password=";
+        var connectionString = configuration["postgres:connectionString"]
+            ?? throw new InvalidOperationException("Missing 'postgres:connectionString' in configuration.");
 
         var optionsBuilder = new DbContextOptionsBuilder<UsersDbContext>();
         optionsBuilder.UseNpgsql(connectionString, b =>
-            b.MigrationsAssembly(typeof(UsersDbContextFactory).Assembly.FullName));
+            b.MigrationsAssembly(typeof(UsersDbContextFactory).Assembly.GetName().Name));
 
         return new UsersDbContext(optionsBuilder.Options);
     }

@@ -9,6 +9,6 @@ public class User
     public string Password { get; set; } = string.Empty;
     public string? JobTitle { get; set; }
     public Role Role { get; set; } = new();
-    public string RoleId { get; set; } = string.Empty;
+    public string RoleName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 }
