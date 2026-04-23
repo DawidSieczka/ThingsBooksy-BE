@@ -17,7 +17,7 @@ public class AppInitializer : IHostedService
         _serviceProvider = serviceProvider;
         _logger = logger;
     }
-        
+
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();

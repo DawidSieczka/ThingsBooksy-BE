@@ -39,20 +39,20 @@ namespace ThingsBooksy.Shared.Infrastructure;
 public static class Extensions
 {
     private const string CorrelationIdKey = "correlation-id";
-        
+
     public static IServiceCollection AddInitializer<T>(this IServiceCollection services) where T : class, IInitializer
         => services.AddTransient<IInitializer, T>();
-        
+
     public static IServiceCollection AddModularInfrastructure(this IServiceCollection services,
         IConfiguration configuration, IList<Assembly> assemblies, IList<IModule> modules)
     {
         var section = configuration.GetSection("app");
         services.Configure<AppOptions>(section);
         var appOptions = section.BindOptions<AppOptions>();
-        
+
         var appInfo = new AppInfo(appOptions.Name, appOptions.Version);
         services.AddSingleton(appInfo);
-        
+
         var disabledModules = new List<string>();
         foreach (var (key, value) in configuration.AsEnumerable())
         {
@@ -97,7 +97,7 @@ public static class Extensions
                 }
             });
         });
-        
+
         services.AddMemoryCache();
         services.AddHttpClient();
         services.AddSingleton<IRequestStorage, RequestStorage>();
@@ -136,10 +136,10 @@ public static class Extensions
                 {
                     manager.ApplicationParts.Remove(part);
                 }
-                    
+
                 manager.FeatureProviders.Add(new InternalControllerFeatureProvider());
             });
-            
+
         return services;
     }
 
@@ -197,14 +197,14 @@ public static class Extensions
             ? type.Namespace.Split(".")[splitIndex].ToLowerInvariant()
             : string.Empty;
     }
-        
+
     public static IApplicationBuilder UseCorrelationId(this IApplicationBuilder app)
         => app.Use((ctx, next) =>
         {
-            ctx.Items.Add(CorrelationIdKey, Guid.NewGuid());
+            ctx.Items.Add(CorrelationIdKey, Guid.CreateVersion7());
             return next();
         });
-        
+
     public static Guid? TryGetCorrelationId(this HttpContext context)
-        => context.Items.TryGetValue(CorrelationIdKey, out var id) ? (Guid) id : null;
+        => context.Items.TryGetValue(CorrelationIdKey, out var id) ? (Guid)id : null;
 }

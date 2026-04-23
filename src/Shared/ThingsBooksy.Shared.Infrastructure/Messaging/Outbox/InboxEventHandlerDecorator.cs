@@ -41,7 +41,7 @@ public class InboxEventHandlerDecorator<T> : IEventHandler<T> where T : class, I
             }
 
             using var scope = _serviceProvider.CreateScope();
-            var inbox = (IInbox) _serviceProvider.GetRequiredService(inboxType);
+            var inbox = (IInbox)_serviceProvider.GetRequiredService(inboxType);
             var context = _messageContextProvider.Get(@event);
             var name = @event.GetType().Name.Underscore();
             await inbox.HandleAsync(context.MessageId, name, () => _handler.HandleAsync(@event, cancellationToken));

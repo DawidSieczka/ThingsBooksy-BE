@@ -17,7 +17,7 @@ namespace ThingsBooksy.Shared.Infrastructure.Postgres;
 public static class Extensions
 {
     private const string SectionName = "postgres";
-    
+
     public static Task<Paged<T>> PaginateAsync<T>(this IQueryable<T> data, IPagedQuery query,
         CancellationToken cancellationToken = default)
         => data.PaginateAsync(query.Page, query.Results, cancellationToken);
@@ -38,7 +38,7 @@ public static class Extensions
         };
 
         var totalResults = await data.CountAsync();
-        var totalPages = totalResults <= results ? 1 : (int) Math.Floor((double) totalResults / results);
+        var totalPages = totalResults <= results ? 1 : (int)Math.Floor((double)totalResults / results);
         var result = await data.Skip((page - 1) * results).Take(results).ToListAsync(cancellationToken);
 
         return new Paged<T>(result, page, results, totalPages, totalResults);
@@ -71,7 +71,7 @@ public static class Extensions
         var section = configuration.GetSection(SectionName);
         services.Configure<PostgresOptions>(section);
         services.AddSingleton(new UnitOfWorkTypeRegistry());
-        
+
         // Temporary fix for EF Core issue related to https://github.com/npgsql/efcore.pg/issues/2000
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 

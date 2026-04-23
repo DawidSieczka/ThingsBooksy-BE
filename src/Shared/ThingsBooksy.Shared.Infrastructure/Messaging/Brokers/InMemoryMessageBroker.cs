@@ -26,7 +26,7 @@ public sealed class InMemoryMessageBroker : IMessageBroker
 
     public InMemoryMessageBroker(IModuleClient moduleClient, IAsyncMessageDispatcher asyncMessageDispatcher,
         IContext context, IOutboxBroker outboxBroker, IMessageContextRegistry messageContextRegistry,
-        IOptions<MessagingOptions> messagingOptions,ILogger<InMemoryMessageBroker> logger)
+        IOptions<MessagingOptions> messagingOptions, ILogger<InMemoryMessageBroker> logger)
     {
         _moduleClient = moduleClient;
         _asyncMessageDispatcher = asyncMessageDispatcher;
@@ -42,7 +42,7 @@ public sealed class InMemoryMessageBroker : IMessageBroker
 
     public Task PublishAsync(IMessage[] messages, CancellationToken cancellationToken = default)
         => PublishAsync(cancellationToken, messages);
-        
+
     private async Task PublishAsync(CancellationToken cancellationToken, params IMessage[] messages)
     {
         if (messages is null)
@@ -59,9 +59,9 @@ public sealed class InMemoryMessageBroker : IMessageBroker
 
         foreach (var message in messages)
         {
-            var messageContext = new MessageContext(Guid.NewGuid(), _context);
+            var messageContext = new MessageContext(Guid.CreateVersion7(), _context);
             _messageContextRegistry.Set(message, messageContext);
-                
+
             var module = message.GetModuleName();
             var name = message.GetType().Name.Underscore();
             var requestId = _context.RequestId;
@@ -69,7 +69,7 @@ public sealed class InMemoryMessageBroker : IMessageBroker
             var userId = _context.Identity?.Id;
             var messageId = messageContext.MessageId;
             var correlationId = messageContext.Context.CorrelationId;
-                
+
             _logger.LogInformation("Publishing a message: {Name} ({Module}) [Request ID: {RequestId}, Message ID: {MessageId}, Correlation ID: {CorrelationId}, Trace ID: '{TraceId}', User ID: '{UserId}]...",
                 name, module, requestId, messageId, correlationId, traceId, userId);
         }

@@ -13,7 +13,7 @@ public class ExceptionCompositionRoot : IExceptionCompositionRoot
     {
         _serviceProvider = serviceProvider;
     }
-        
+
     public ExceptionResponse Map(Exception exception)
     {
         using var scope = _serviceProvider.CreateScope();

@@ -45,7 +45,7 @@ internal sealed class UsersModule : IModule
 
         endpoints.MapPost("/sign-up", async (SignUpCommand command, IDispatcher dispatcher) =>
         {
-            await dispatcher.SendAsync(command with { UserId = Guid.NewGuid() });
+            await dispatcher.SendAsync(command);
             return Results.NoContent();
         }).WithTags("Account").WithName("Sign up");
 

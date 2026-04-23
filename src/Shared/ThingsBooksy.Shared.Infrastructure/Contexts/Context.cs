@@ -7,14 +7,14 @@ namespace ThingsBooksy.Shared.Infrastructure.Contexts;
 
 public class Context : IContext
 {
-    public Guid RequestId { get; } = Guid.NewGuid();
+    public Guid RequestId { get; } = Guid.CreateVersion7();
     public Guid CorrelationId { get; }
     public string TraceId { get; }
     public string IpAddress { get; }
     public string UserAgent { get; }
     public IIdentityContext Identity { get; }
 
-    public Context() : this(Guid.NewGuid(), $"{Guid.NewGuid():N}", null)
+    public Context() : this(Guid.CreateVersion7(), $"{Guid.CreateVersion7():N}", null)
     {
     }
 
@@ -27,7 +27,7 @@ public class Context : IContext
     public Context(Guid? correlationId, string traceId, IIdentityContext identity = null, string ipAddress = null,
         string userAgent = null)
     {
-        CorrelationId = correlationId ?? Guid.NewGuid();
+        CorrelationId = correlationId ?? Guid.CreateVersion7();
         TraceId = traceId;
         Identity = identity ?? IdentityContext.Empty;
         IpAddress = ipAddress;

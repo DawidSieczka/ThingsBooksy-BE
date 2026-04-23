@@ -157,7 +157,7 @@ public static class Extensions
         }
 
         services.AddSingleton(tokenValidationParameters);
-        
+
         var policies = modules?.SelectMany(x => x.Policies ?? Enumerable.Empty<string>()) ??
                        Enumerable.Empty<string>();
         services.AddAuthorization(authorization =>

@@ -17,7 +17,7 @@ public class ErrorHandlerMiddleware : IMiddleware
         _exceptionCompositionRoot = exceptionCompositionRoot;
         _logger = logger;
     }
-        
+
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         try
@@ -34,13 +34,13 @@ public class ErrorHandlerMiddleware : IMiddleware
     private async Task HandleErrorAsync(HttpContext context, Exception exception)
     {
         var errorResponse = _exceptionCompositionRoot.Map(exception);
-        context.Response.StatusCode = (int) (errorResponse?.StatusCode ?? HttpStatusCode.InternalServerError);
+        context.Response.StatusCode = (int)(errorResponse?.StatusCode ?? HttpStatusCode.InternalServerError);
         var response = errorResponse?.Response;
         if (response is null)
         {
             return;
         }
-            
+
         await context.Response.WriteAsJsonAsync(response);
     }
 }

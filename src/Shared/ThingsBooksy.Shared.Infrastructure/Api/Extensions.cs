@@ -14,13 +14,13 @@ public static class Extensions
         => model.Bind<T, object>(expression, value);
 
     public static T BindId<T>(this T model, Expression<Func<T, string>> expression)
-        => model.Bind(expression, Guid.NewGuid());
+        => model.Bind(expression, Guid.CreateVersion7());
 
     private static TModel Bind<TModel, TProperty>(this TModel model, Expression<Func<TModel, TProperty>> expression,
         object value)
     {
         var memberExpression = expression.Body as MemberExpression ??
-                               ((UnaryExpression) expression.Body).Operand as MemberExpression;
+                               ((UnaryExpression)expression.Body).Operand as MemberExpression;
         if (memberExpression is null)
         {
             return model;
@@ -45,7 +45,7 @@ public static class Extensions
         var section = configuration.GetSection("cors");
         var corsOptions = section.BindOptions<CorsOptions>();
         services.Configure<CorsOptions>(section);
-            
+
         return services
             .AddCors(cors =>
             {
@@ -72,14 +72,14 @@ public static class Extensions
                 });
             });
     }
-        
+
     public static string GetUserIpAddress(this HttpContext context)
     {
         if (context is null)
         {
             return string.Empty;
         }
-            
+
         var ipAddress = context.Connection.RemoteIpAddress?.ToString();
         if (context.Request.Headers.TryGetValue("x-forwarded-for", out var forwardedFor))
         {

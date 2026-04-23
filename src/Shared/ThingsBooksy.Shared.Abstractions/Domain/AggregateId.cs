@@ -7,7 +7,7 @@ public record AggregateId
 {
     public Guid Value { get; }
 
-    public AggregateId() : this(Guid.NewGuid())
+    public AggregateId() : this(Guid.CreateVersion7())
     {
     }
 
@@ -22,13 +22,13 @@ public record AggregateId
     }
 
     public static AggregateId Create()
-        => new(Guid.NewGuid());
-    
+        => new(Guid.CreateVersion7());
+
     public static implicit operator Guid(AggregateId id)
         => id.Value;
 
     public static implicit operator AggregateId(Guid id)
-        => new (id);
+        => new(id);
 
     public override string ToString() => Value.ToString();
 }

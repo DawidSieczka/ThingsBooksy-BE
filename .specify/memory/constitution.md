@@ -50,6 +50,41 @@ Nie dodawaj abstrakcji, wzorców ani pakietów, jeśli nie rozwiązują aktualne
 - Brak MediatR, AutoMapper ani ciężkich frameworków — zwykły dispatch C# i ręczne mapowanie
 - Konfiguracja: `module.{nazwa}.json` per moduł, scalane przez `ConfigureModules()` przy starcie
 
+### VIII. Formatowanie Kodu
+Kod jest formatowany narzędziem **`dotnet format`** wbudowanym w .NET SDK.
+- Uruchamiaj **przed każdym commitem**: `dotnet format`
+- Formatowanie obejmuje: wcięcia, spacje, organizację `using`, styl kodu zgodny z `.editorconfig`
+- Jeśli plik `.editorconfig` nie istnieje w katalogu głównym — należy go utworzyć
+- CI/CD powinno weryfikować formatowanie: `dotnet format --verify-no-changes`
+
+### IX. Encje Domenowe — Hermetyzacja (NIEPODWAŻALNE)
+Encje domenowe **muszą** chronić swój stan przez pełną hermetyzację.
+- **Prywatne settery**: wszystkie właściwości encji mają `private set` — stan zmienia się wyłącznie przez metody encji
+- **Prywatny konstruktor**: konstruktor encji jest `private` — jedynym sposobem tworzenia instancji jest statyczna metoda fabryczna `Create(...)`
+- **Metody domenowe**: wszelkie modyfikacje stanu (tworzenie, aktualizacja, usunięcie, przywrócenie) realizowane są przez publiczne metody encji (`Create`, `Update`, `Delete`, `Restore` itp.)
+- Przykład wzorca:
+  ```csharp
+  internal class SomeEntity
+  {
+      public Guid Id { get; private set; }
+      public string Name { get; private set; } = null!;
+
+      private SomeEntity() { }
+
+      public static SomeEntity Create(string name)
+          => new() { Id = Guid.CreateVersion7(), Name = name };
+
+      public void Update(string name) => Name = name;
+  }
+  ```
+
+### X. Identyfikatory — GUID v7 (NIEPODWAŻALNE)
+Wszystkie identyfikatory **generowane przez aplikację** muszą używać `Guid.CreateVersion7()`.
+- `Guid.NewGuid()` jest **zabronione** — zamień każde wystąpienie na `Guid.CreateVersion7()`
+- GUID v7 jest time-ordered (lepsza wydajność indeksów w PostgreSQL) i monotoniczny
+- Identyfikatory nowych encji generowane są wewnątrz metody `Create(...)` encji
+- Identyfikatory wskazujące **relację do istniejącej encji** (np. `OwnerId`, `GroupId`) mogą być przyjmowane z zewnątrz — są to referencje, nie nowe identyfikatory
+
 ## Stos Technologiczny
 
 | Warstwa | Technologia |
@@ -85,4 +120,4 @@ Nie dodawaj abstrakcji, wzorców ani pakietów, jeśli nie rozwiązują aktualne
 - Wszystkie PR muszą weryfikować zgodność z zasadami Modularnego Monolitu i Uproszczonego DDD
 - Każde odejście od wymogu `AddEndpointsApiExplorer()` jest zabronione — zgodność ze Swaggerem jest obowiązkowa
 
-**Wersja**: 1.0.0 | **Ratyfikacja**: 2026-04-23 | **Ostatnia zmiana**: 2026-04-23
+**Wersja**: 1.1.0 | **Ratyfikacja**: 2026-04-23 | **Ostatnia zmiana**: 2026-04-23

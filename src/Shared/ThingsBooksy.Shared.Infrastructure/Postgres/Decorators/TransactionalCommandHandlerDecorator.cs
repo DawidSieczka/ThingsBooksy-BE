@@ -34,7 +34,7 @@ public class TransactionalCommandHandlerDecorator<T> : ICommandHandler<T> where 
             return;
         }
 
-        var unitOfWork = (IUnitOfWork) _serviceProvider.GetRequiredService(unitOfWorkType);
+        var unitOfWork = (IUnitOfWork)_serviceProvider.GetRequiredService(unitOfWorkType);
         var unitOfWorkName = unitOfWorkType.Name;
         var name = command.GetType().Name.Underscore();
         _logger.LogInformation("Handling: {Name} using TX ({UnitOfWorkName})...", name, unitOfWorkName);

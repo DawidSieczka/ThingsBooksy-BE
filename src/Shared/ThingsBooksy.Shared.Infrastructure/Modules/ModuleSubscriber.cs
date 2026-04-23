@@ -25,7 +25,7 @@ public sealed class ModuleSubscriber : IModuleSubscriber
             async (request, cancellationToken) =>
             {
                 await using var scope = _serviceProvider.CreateAsyncScope();
-                return await action((TRequest) request, scope.ServiceProvider, cancellationToken);
+                return await action((TRequest)request, scope.ServiceProvider, cancellationToken);
             });
 
         return this;
@@ -38,7 +38,7 @@ public sealed class ModuleSubscriber : IModuleSubscriber
             async (request, cancellationToken) =>
             {
                 await using var scope = _serviceProvider.CreateAsyncScope();
-                await action((TRequest) request, scope.ServiceProvider, cancellationToken);
+                await action((TRequest)request, scope.ServiceProvider, cancellationToken);
                 return default;
             });
 

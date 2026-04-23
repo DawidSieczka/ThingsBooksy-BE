@@ -8,7 +8,7 @@ namespace ThingsBooksy.Shared.Infrastructure.Messaging.Outbox;
 public static class Extensions
 {
     private const string SectionName = "outbox";
-    
+
     public static IServiceCollection AddOutbox<T>(this IServiceCollection services, IConfiguration configuration) where T : DbContext
     {
         var outboxOptions = configuration.GetSection(SectionName).BindOptions<OutboxOptions>();
@@ -21,7 +21,7 @@ public static class Extensions
         services.AddTransient<IOutbox, EfOutbox<T>>();
         services.AddTransient<EfInbox<T>>();
         services.AddTransient<EfOutbox<T>>();
-            
+
         using var serviceProvider = services.BuildServiceProvider();
         serviceProvider.GetRequiredService<InboxTypeRegistry>().Register<EfInbox<T>>();
         serviceProvider.GetRequiredService<OutboxTypeRegistry>().Register<EfOutbox<T>>();
@@ -34,7 +34,7 @@ public static class Extensions
         var section = configuration.GetSection(SectionName);
         var outboxOptions = section.BindOptions<OutboxOptions>();
         services.Configure<OutboxOptions>(section);
-        
+
         services.AddSingleton(new InboxTypeRegistry());
         services.AddSingleton(new OutboxTypeRegistry());
         services.AddSingleton<IOutboxBroker, OutboxBroker>();

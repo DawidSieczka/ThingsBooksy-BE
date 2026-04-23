@@ -14,6 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Modules\ManagementGroups\ThingsBooksy.Modules.ManagementGroups.Api\ThingsBooksy.Modules.ManagementGroups.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\ManagementGroups\ThingsBooksy.Modules.ManagementGroups.Migrations\ThingsBooksy.Modules.ManagementGroups.Migrations.csproj" />
     <ProjectReference Include="..\..\Modules\Users\ThingsBooksy.Modules.Users.Api\ThingsBooksy.Modules.Users.Api.csproj" />
     <ProjectReference Include="..\..\Shared\ThingsBooksy.Shared.Infrastructure\ThingsBooksy.Shared.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Users\ThingsBooksy.Modules.Users.Migrations\ThingsBooksy.Modules.Users.Migrations.csproj" />

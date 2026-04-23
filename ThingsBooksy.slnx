@@ -4,6 +4,11 @@
     <Project Path="src/Bootstrapper/ThingsBooksy.Bootstrapper/ThingsBooksy.Bootstrapper.csproj" />
   </Folder>
   <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/ManagementGroups/">
+    <Project Path="src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.Api/ThingsBooksy.Modules.ManagementGroups.Api.csproj" />
+    <Project Path="src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.Core/ThingsBooksy.Modules.ManagementGroups.Core.csproj" />
+    <Project Path="src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.Migrations/ThingsBooksy.Modules.ManagementGroups.Migrations.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Users/">
     <Project Path="src/Modules/Users/ThingsBooksy.Modules.Users.Api/ThingsBooksy.Modules.Users.Api.csproj" />
     <Project Path="src/Modules/Users/ThingsBooksy.Modules.Users.Contracts/ThingsBooksy.Modules.Users.Contracts.csproj" />

@@ -16,14 +16,14 @@ public static class Extensions
                 .WithoutAttribute<DecoratorAttribute>())
             .AsImplementedInterfaces()
             .WithScopedLifetime());
-            
+
         return services;
     }
-        
+
     public static IServiceCollection AddPagedQueryDecorator(this IServiceCollection services)
     {
         services.TryDecorate(typeof(IQueryHandler<,>), typeof(PagedQueryHandlerDecorator<,>));
-            
+
         return services;
     }
 }

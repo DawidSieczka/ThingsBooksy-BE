@@ -80,6 +80,7 @@ internal sealed class SignUpHandler : ICommandHandler<SignUpCommand>
         }
 
         await _messageBroker.PublishAsync(new SignedUp(user.Id, email, role.Name, jobTitle), cancellationToken);
+        await _messageBroker.PublishAsync(new ThingsBooksy.Shared.Abstractions.Events.UserSignedUp(user.Id, email), cancellationToken);
         _logger.LogInformation("User with ID: '{UserId}' has signed up.", user.Id);
     }
 

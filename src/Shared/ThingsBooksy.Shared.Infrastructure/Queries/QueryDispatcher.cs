@@ -25,6 +25,6 @@ public sealed class QueryDispatcher : IQueryDispatcher
         }
 
         // ReSharper disable once PossibleNullReferenceException
-        return await (Task<TResult>)method.Invoke(handler, new object[] {query, cancellationToken});
+        return await (Task<TResult>)method.Invoke(handler, new object[] { query, cancellationToken });
     }
 }

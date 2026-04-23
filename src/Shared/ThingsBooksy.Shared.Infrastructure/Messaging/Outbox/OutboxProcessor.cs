@@ -46,7 +46,7 @@ public class OutboxProcessor : BackgroundService
                 await Task.Delay(_interval, stoppingToken);
                 continue;
             }
-                
+
             _logger.LogTrace("Started processing outbox messages...");
             var stopwatch = new Stopwatch();
             stopwatch.Start();

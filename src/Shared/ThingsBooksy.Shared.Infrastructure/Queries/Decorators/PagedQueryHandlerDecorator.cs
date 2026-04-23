@@ -19,7 +19,7 @@ public sealed class PagedQueryHandlerDecorator<TQuery, TResult> : IQueryHandler<
     {
         const int maxResults = 100;
         const int defaultResults = 10;
-            
+
         if (query is IPagedQuery pagedQuery)
         {
             if (pagedQuery.Page <= 0)

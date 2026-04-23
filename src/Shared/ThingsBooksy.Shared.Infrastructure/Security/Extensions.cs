@@ -13,7 +13,7 @@ public static class Extensions
     {
         var section = configuration.GetSection("security");
         var securityOptions = section.BindOptions<SecurityOptions>();
-        
+
         using (var serviceProvider = services.BuildServiceProvider())
         {
             var logger = serviceProvider.GetRequiredService<ILogger<ISecurityProvider>>();

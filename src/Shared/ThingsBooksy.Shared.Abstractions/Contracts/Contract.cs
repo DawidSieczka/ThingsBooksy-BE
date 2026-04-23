@@ -20,7 +20,7 @@ public abstract class Contract<T> : IContract where T : class
     {
         if (!(expression.Body is MemberExpression memberExpression))
         {
-            memberExpression = ((UnaryExpression) expression.Body).Operand as MemberExpression;
+            memberExpression = ((UnaryExpression)expression.Body).Operand as MemberExpression;
         }
 
         if (memberExpression is null)

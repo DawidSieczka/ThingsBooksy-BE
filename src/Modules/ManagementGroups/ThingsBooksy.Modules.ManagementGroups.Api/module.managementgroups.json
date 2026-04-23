@@ -1,0 +1,8 @@
+{
+  "managementgroups": {
+    "module": {
+      "name": "ManagementGroups",
+      "enabled": true
+    }
+  }
+}

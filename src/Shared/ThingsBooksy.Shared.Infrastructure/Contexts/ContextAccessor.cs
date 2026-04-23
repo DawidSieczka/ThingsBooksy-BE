@@ -20,7 +20,7 @@ public sealed class ContextAccessor
 
             if (value != null)
             {
-                Holder.Value = new ContextHolder {Context = value};
+                Holder.Value = new ContextHolder { Context = value };
             }
         }
     }
