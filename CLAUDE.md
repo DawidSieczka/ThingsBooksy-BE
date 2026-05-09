@@ -116,10 +116,12 @@ internal class SomeEntity
 ## Development workflow
 
 For **new features or substantial changes**, follow the SpecKit workflow:
-1. `/speckit.specify` — write specification
-2. `/speckit.plan` — implementation plan
-3. `/speckit.tasks` — task breakdown
-4. `/speckit.implement` — implementation
+1. `/speckit-specify` — write specification
+2. `/speckit-plan` — implementation plan
+3. `/speckit-tasks` — task breakdown
+4. `/speckit-implement` — implementation
+
+Additional SpecKit commands: `/speckit-clarify`, `/speckit-analyze`, `/speckit-checklist`, `/speckit-constitution`, `/speckit-taskstoissues`
 
 For **small bugfixes and minor changes**, proceed directly without SpecKit.
 
@@ -163,3 +165,8 @@ All agents live in `.claude/agents/` (root only — nested directories are not s
 - `.specify/memory/constitution.md` — authoritative architecture rules (full version of what is summarized here; read it before proposing cross-module changes or new modules)
 - `src/Bootstrapper/ThingsBooksy.Bootstrapper` — startup composition and module registration
 - `src/Shared/ThingsBooksy.Shared.Abstractions` — shared event/message contracts
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+<!-- SPECKIT END -->

@@ -102,7 +102,7 @@ Wszystkie identyfikatory **generowane przez aplikację** muszą używać `Guid.C
 ## Proces Deweloperski
 
 1. **Nowy moduł**: utwórz `{Nazwa}.Api` + `{Nazwa}.Core` + `{Nazwa}.Migrations`, zarejestruj w `Bootstrapper`, dodaj `module.{nazwa}.json`
-2. **Nowa funkcjonalność**: specyfikacja (`/speckit.specify`), plan (`/speckit.plan`), zadania (`/speckit.tasks`), implementacja (`/speckit.implement`)
+2. **Nowa funkcjonalność**: specyfikacja (`/speckit-specify`), plan (`/speckit-plan`), zadania (`/speckit-tasks`), implementacja (`/speckit-implement`)
 3. **Zmiana bazy danych**: dodaj migrację EF, zaktualizuj bazę, zweryfikuj w Dockerze
 4. **Przed commitem**: upewnij się że projekt buduje się, Swagger pokazuje wszystkie endpointy, Docker compose startuje poprawnie
 
