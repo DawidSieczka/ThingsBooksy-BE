@@ -1,68 +1,68 @@
-# Konstytucja ThingsBooksy
+# ThingsBooksy Constitution
 
-## Zasady Nadrzędne
+## Core Principles
 
-### I. Architektura Modularnego Monolitu (NIEPODWAŻALNE)
-Aplikacja jest zbudowana jako **Modularny Monolit**: jeden deployowalny artefakt złożony z niezależnych, samodzielnych modułów.
-- Każdy moduł znajduje się w `src/Modules/{NazwaModułu}/` i zawiera dokładnie dwa projekty: `{Nazwa}.Api` i `{Nazwa}.Core`
-- Moduły **nie mogą** bezpośrednio referencjonować się nawzajem — komunikacja odbywa się wyłącznie przez `IMessageBroker` (zdarzenia) lub `IModuleClient` (zapytania)
-- Współdzielona infrastruktura należy wyłącznie do `src/Shared/` — brak zależności między modułami
-- Każdy moduł wystawia swój publiczny kontrakt przez `IModule` i rejestruje endpointy w `Expose(IEndpointRouteBuilder)`
+### I. Modular Monolith Architecture (NON-NEGOTIABLE)
+The application is built as a **Modular Monolith**: a single deployable artifact composed of independent, self-contained modules.
+- Each module lives in `src/Modules/{ModuleName}/` and contains exactly two source projects: `{Name}.Api` and `{Name}.Core`
+- Modules **must never** directly reference each other — communication happens exclusively through `IMessageBroker` (events) or `IModuleClient` (queries)
+- Shared infrastructure belongs exclusively to `src/Shared/` — no cross-module dependencies
+- Each module exposes its public contract via `IModule` and registers endpoints in `Expose(IEndpointRouteBuilder)`
 
-### II. Uproszczone DDD (NIEPODWAŻALNE)
-Projekt stosuje **Uproszczone DDD** — brak oddzielnych warstw Application i Infrastructure.
-- Każdy moduł ma dokładnie dwa projekty: `{Nazwa}.Api` (warstwa HTTP, Minimal API) i `{Nazwa}.Core` (domena, persystencja, komendy, zapytania, zdarzenia)
-- `Core` zawiera: encje domenowe, EF `DbContext`, handlery komend/zapytań, zdarzenia domenowe, obiekty wartości
-- `Api` zawiera: rejestrację `IModule`, definicje endpointów, DTO (rekordy request/response), plik konfiguracyjny JSON modułu
-- Brak MediatR — komendy/zapytania to zwykłe klasy C# dispatchowane przez `IDispatcher`
+### II. Simplified DDD (NON-NEGOTIABLE)
+The project applies **Simplified DDD** — no separate Application or Infrastructure layers.
+- Each module has exactly two projects: `{Name}.Api` (HTTP layer, Minimal API) and `{Name}.Core` (domain, persistence, commands, queries, events)
+- `Core` contains: domain entities, EF `DbContext`, command/query handlers, domain events, value objects
+- `Api` contains: `IModule` registration, endpoint definitions, DTOs (request/response records), module JSON config file
+- No MediatR — commands/queries are plain C# classes dispatched via `IDispatcher`
 
-### III. Minimal API Endpoints (NIEPODWAŻALNE)
-Wszystkie endpointy HTTP są definiowane przy użyciu **ASP.NET Core Minimal APIs** — brak kontrolerów MVC.
-- Endpointy rejestrowane w `{NazwaModułu}Module.Expose()` dla każdego modułu
-- Prefix routy wg wzorca: `/{nazwa-modułu}/...`
-- Zawsze wywoływać `services.AddEndpointsApiExplorer()` aby Swagger odkrył endpointy Minimal API
-- Swagger/OpenAPI musi być dostępny na `/swagger` we wszystkich środowiskach
+### III. Minimal API Endpoints (NON-NEGOTIABLE)
+All HTTP endpoints are defined using **ASP.NET Core Minimal APIs** — no MVC controllers.
+- Endpoints registered in `{ModuleName}Module.Expose()` for each module
+- Route prefix pattern: `/{module-name}/...`
+- Always call `services.AddEndpointsApiExplorer()` so Swagger discovers Minimal API endpoints
+- Swagger/OpenAPI must be available at `/swagger` in all environments
 
-### IV. Komunikacja Między Modułami przez Zdarzenia
-Moduły komunikują się przez zdarzenia domenowe publikowane przez `IMessageBroker`.
-- Publikowanie: `await _messageBroker.PublishAsync(new CośSięStałoEvent(...))`
-- Subskrypcja: implementacja `IEventHandler<TEvent>` i rejestracja w `Register(IServiceCollection)` modułu
-- Jeśli moduł potrzebuje danych z innego modułu, subskrybuje zdarzenia i zapisuje **read model** (lokalną kopię) — nigdy nie odpytuje bazy danych innego modułu
-- Kontrakty zdarzeń w `src/Shared/ThingsBooksy.Shared.Abstractions/` — brak typów specyficznych dla modułu w treści zdarzeń
+### IV. Inter-Module Communication via Events
+Modules communicate through domain events published via `IMessageBroker`.
+- Publishing: `await _messageBroker.PublishAsync(new SomethingHappenedEvent(...))`
+- Subscribing: implement `IEventHandler<TEvent>` and register it in the module's `Register(IServiceCollection)`
+- If a module needs data from another module, it subscribes to events and stores a **read model** (local copy) — it never queries another module's database
+- Event contracts live in `src/Shared/ThingsBooksy.Shared.Abstractions/` — no module-specific types in event bodies
 
-### V. Podejście Test-First
-Nowe funkcjonalności i poprawki błędów wymagają testów przed implementacją.
-- Testy jednostkowe logiki domenowej (encje, obiekty wartości, handlery)
-- Testy integracyjne dla interakcji z bazą danych (EF Core, migracje)
-- Brak testów = brak merge'a dla zmian logiki biznesowej
-- Projekty testowe: `{NazwaModułu}.Tests.Unit` i `{NazwaModułu}.Tests.Integration`
+### V. Test-First Approach
+New features and bug fixes require tests before implementation.
+- Unit tests for domain logic (entities, value objects, handlers)
+- Integration tests for database interactions (EF Core, migrations)
+- No tests = no merge for business logic changes
+- Test projects: `{ModuleName}.Tests.Unit` and `{ModuleName}.Tests.Integration`
 
-### VI. Persystencja i Migracje
-Każdy moduł posiada własny **EF Core DbContext** z izolacją schematu.
-- Nazewnictwo schematu: `users` dla modułu Users, `{moduł}` dla pozostałych
-- Migracje w dedykowanym projekcie `{NazwaModułu}.Migrations`
-- Komenda migracji: `dotnet ef migrations add {Nazwa} --project src/Modules/{M}/{M}.Migrations --startup-project src/Bootstrapper/ThingsBooksy.Bootstrapper`
-- Zawsze uruchamiać `dotnet ef database update` po stworzeniu migracji
+### VI. Persistence and Migrations
+Each module has its own **EF Core DbContext** with schema isolation.
+- Schema naming: `users` for the Users module, `{module}` for all others
+- Migrations live in a dedicated `{ModuleName}.Migrations` project
+- Migration command: `dotnet ef migrations add {Name} --project src/Modules/{M}/{M}.Migrations --startup-project src/Bootstrapper/ThingsBooksy.Bootstrapper`
+- Always run `dotnet ef database update` after adding a migration
 
-### VII. Prostota i YAGNI
-Nie dodawaj abstrakcji, wzorców ani pakietów, jeśli nie rozwiązują aktualnego problemu.
-- Preferuj wbudowane funkcje .NET zamiast bibliotek zewnętrznych
-- Brak MediatR, AutoMapper ani ciężkich frameworków — zwykły dispatch C# i ręczne mapowanie
-- Konfiguracja: `module.{nazwa}.json` per moduł, scalane przez `ConfigureModules()` przy starcie
+### VII. Simplicity and YAGNI
+Do not add abstractions, patterns, or packages unless they solve a current problem.
+- Prefer built-in .NET features over external libraries
+- No MediatR, AutoMapper, or heavy frameworks — plain C# dispatch and manual mapping
+- Configuration: `module.{name}.json` per module, merged by `ConfigureModules()` at startup
 
-### VIII. Formatowanie Kodu
-Kod jest formatowany narzędziem **`dotnet format`** wbudowanym w .NET SDK.
-- Uruchamiaj **przed każdym commitem**: `dotnet format`
-- Formatowanie obejmuje: wcięcia, spacje, organizację `using`, styl kodu zgodny z `.editorconfig`
-- Jeśli plik `.editorconfig` nie istnieje w katalogu głównym — należy go utworzyć
-- CI/CD powinno weryfikować formatowanie: `dotnet format --verify-no-changes`
+### VIII. Code Formatting
+Code is formatted with the **`dotnet format`** tool built into the .NET SDK.
+- Run **before every commit**: `dotnet format`
+- Formatting covers: indentation, whitespace, `using` organization, code style aligned with `.editorconfig`
+- If `.editorconfig` does not exist at the root — create it
+- CI/CD should verify formatting: `dotnet format --verify-no-changes`
 
-### IX. Encje Domenowe — Hermetyzacja (NIEPODWAŻALNE)
-Encje domenowe **muszą** chronić swój stan przez pełną hermetyzację.
-- **Prywatne settery**: wszystkie właściwości encji mają `private set` — stan zmienia się wyłącznie przez metody encji
-- **Prywatny konstruktor**: konstruktor encji jest `private` — jedynym sposobem tworzenia instancji jest statyczna metoda fabryczna `Create(...)`
-- **Metody domenowe**: wszelkie modyfikacje stanu (tworzenie, aktualizacja, usunięcie, przywrócenie) realizowane są przez publiczne metody encji (`Create`, `Update`, `Delete`, `Restore` itp.)
-- Przykład wzorca:
+### IX. Domain Entities — Encapsulation (NON-NEGOTIABLE)
+Domain entities **must** protect their state through full encapsulation.
+- **Private setters**: all entity properties have `private set` — state changes only through entity methods
+- **Private constructor**: the entity constructor is `private` — the only way to create an instance is via the static factory method `Create(...)`
+- **Domain methods**: all state mutations (creation, update, deletion, restoration) are performed through public entity methods (`Create`, `Update`, `Delete`, `Restore`, etc.)
+- Pattern example:
   ```csharp
   internal class SomeEntity
   {
@@ -78,46 +78,46 @@ Encje domenowe **muszą** chronić swój stan przez pełną hermetyzację.
   }
   ```
 
-### X. Identyfikatory — GUID v7 (NIEPODWAŻALNE)
-Wszystkie identyfikatory **generowane przez aplikację** muszą używać `Guid.CreateVersion7()`.
-- `Guid.NewGuid()` jest **zabronione** — zamień każde wystąpienie na `Guid.CreateVersion7()`
-- GUID v7 jest time-ordered (lepsza wydajność indeksów w PostgreSQL) i monotoniczny
-- Identyfikatory nowych encji generowane są wewnątrz metody `Create(...)` encji
-- Identyfikatory wskazujące **relację do istniejącej encji** (np. `OwnerId`, `GroupId`) mogą być przyjmowane z zewnątrz — są to referencje, nie nowe identyfikatory
+### X. Identifiers — GUID v7 (NON-NEGOTIABLE)
+All identifiers **generated by the application** must use `Guid.CreateVersion7()`.
+- `Guid.NewGuid()` is **forbidden** — replace every occurrence with `Guid.CreateVersion7()`
+- GUID v7 is time-ordered (better index performance in PostgreSQL) and monotonic
+- New entity IDs are generated inside the entity's `Create(...)` method
+- Identifiers referencing **an existing entity** (e.g. `OwnerId`, `GroupId`) may be accepted from outside — they are references, not new identifiers
 
-## Stos Technologiczny
+## Tech Stack
 
-| Warstwa | Technologia |
+| Layer | Technology |
 |---|---|
 | Runtime | .NET 10 / ASP.NET Core 10 |
-| Język | C# 13 |
-| Baza danych | PostgreSQL 17 (Docker) |
+| Language | C# 13 |
+| Database | PostgreSQL 17 (Docker) |
 | ORM | Entity Framework Core 10 |
-| Autentykacja | JWT Bearer + szyfrowanie symetryczne AES-256 |
-| Konteneryzacja | Docker / docker-compose (WSL lokalnie) |
-| Dokumentacja API | Swashbuckle / Swagger UI |
-| Logowanie | Serilog |
-| Format rozwiązania | `.slnx` (VS 2022+) |
+| Authentication | JWT Bearer + AES-256 symmetric encryption |
+| Containerization | Docker / docker-compose (WSL locally) |
+| API Docs | Swashbuckle / Swagger UI |
+| Logging | Serilog |
+| Solution Format | `.slnx` (VS 2022+) |
 
-## Proces Deweloperski
+## Development Workflow
 
-1. **Nowy moduł**: utwórz `{Nazwa}.Api` + `{Nazwa}.Core` + `{Nazwa}.Migrations`, zarejestruj w `Bootstrapper`, dodaj `module.{nazwa}.json`
-2. **Nowa funkcjonalność**: specyfikacja (`/speckit-specify`), plan (`/speckit-plan`), zadania (`/speckit-tasks`), implementacja (`/speckit-implement`)
-3. **Zmiana bazy danych**: dodaj migrację EF, zaktualizuj bazę, zweryfikuj w Dockerze
-4. **Przed commitem**: upewnij się że projekt buduje się, Swagger pokazuje wszystkie endpointy, Docker compose startuje poprawnie
+1. **New module**: create `{Name}.Api` + `{Name}.Core` + `{Name}.Migrations`, register in `Bootstrapper`, add `module.{name}.json`
+2. **New feature**: specify (`/speckit-specify`), plan (`/speckit-plan`), tasks (`/speckit-tasks`), implement (`/speckit-implement`)
+3. **Database change**: add EF migration, update database, verify in Docker
+4. **Before commit**: ensure the project builds, Swagger shows all endpoints, Docker Compose starts correctly
 
-## Docker i Konfiguracja Lokalna
+## Docker and Local Environment
 
-- Lokalny Docker działa przez **WSL** — poprzedzaj każdą komendę docker słowem `wsl`: `wsl docker compose up --build`
-- Środowisko: `ASPNETCORE_ENVIRONMENT=Docker` aktywuje `appsettings.Docker.json`
-- Connection string do PostgreSQL w `appsettings.Docker.json` musi zawierać nazwę użytkownika i hasło
-- Aplikacja dostępna na `localhost:8080`, Swagger pod `localhost:8080/swagger`
+- Local Docker runs via **WSL** — prefix every docker command with `wsl`: `wsl docker compose up --build`
+- Environment: `ASPNETCORE_ENVIRONMENT=Docker` activates `appsettings.Docker.json`
+- PostgreSQL connection string in `appsettings.Docker.json` must include username and password
+- App available at `localhost:8080`, Swagger at `localhost:8080/swagger`
 
-## Zarządzanie
+## Governance
 
-- Niniejsza konstytucja ma pierwszeństwo przed wszystkimi innymi praktykami i konwencjami
-- Zmiany wymagają aktualizacji tego pliku z uzasadnieniem i inkrementacją wersji
-- Wszystkie PR muszą weryfikować zgodność z zasadami Modularnego Monolitu i Uproszczonego DDD
-- Każde odejście od wymogu `AddEndpointsApiExplorer()` jest zabronione — zgodność ze Swaggerem jest obowiązkowa
+- This constitution takes precedence over all other practices and conventions
+- Changes require updating this file with a justification and a version increment
+- All PRs must verify compliance with Modular Monolith and Simplified DDD principles
+- Any deviation from the `AddEndpointsApiExplorer()` requirement is forbidden — Swagger compliance is mandatory
 
-**Wersja**: 1.1.0 | **Ratyfikacja**: 2026-04-23 | **Ostatnia zmiana**: 2026-04-23
+**Version**: 1.1.0 | **Ratified**: 2026-04-23 | **Last Amended**: 2026-04-23
