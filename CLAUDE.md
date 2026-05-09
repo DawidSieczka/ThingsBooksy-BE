@@ -125,6 +125,30 @@ For **small bugfixes and minor changes**, proceed directly without SpecKit.
 
 ---
 
+## Agent fleet
+
+Claude (main session) is the orchestrator — it reads this file to decide when to delegate to subagents.
+
+### Known agents
+
+| Agent | When to delegate |
+|---|---|
+| `agent-architect` | Designing a new agent, exploring what agents could improve the workflow, growing the fleet |
+
+### Naming convention
+
+All agents live in `.claude/agents/` (root only — nested directories are not supported).
+- Module-specific: `{module}-{purpose}.md` — e.g. `users-code-reviewer.md`
+- Cross-module: `shared-{purpose}.md` or `{purpose}.md`
+
+### Adding a new agent
+
+1. Use `agent-architect` to design and produce the agent file
+2. After approval, `agent-architect` will propose an update to the table above
+3. Apply the update so future sessions know the agent exists
+
+---
+
 ## Docker & local environment
 
 - All `docker` commands must be prefixed with `wsl`: `wsl docker compose up --build`
