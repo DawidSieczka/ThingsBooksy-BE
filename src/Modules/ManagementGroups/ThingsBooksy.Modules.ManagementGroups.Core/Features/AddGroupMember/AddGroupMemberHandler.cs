@@ -39,7 +39,7 @@ internal sealed class AddGroupMemberHandler : ICommandHandler<AddGroupMemberComm
 
         var userReadModel = await _dbContext.UserReadModels
             .FirstOrDefaultAsync(x => x.Email == command.Email.ToLowerInvariant(), cancellationToken)
-            ?? throw new ManagementGroupsDomainException($"User with email '{command.Email}' was not found.");
+            ?? throw new UserNotFoundException(command.Email);
 
         if (userReadModel.Id == group.OwnerId)
             throw new ManagementGroupsDomainException("Owner is already a member of this group.");

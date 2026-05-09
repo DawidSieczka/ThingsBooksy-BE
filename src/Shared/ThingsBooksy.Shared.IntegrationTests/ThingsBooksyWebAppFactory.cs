@@ -1,0 +1,71 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using DotNet.Testcontainers.Builders;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
+using Npgsql;
+using Respawn;
+using Respawn.Graph;
+using Testcontainers.PostgreSql;
+using Xunit;
+
+namespace ThingsBooksy.Shared.IntegrationTests;
+
+public class ThingsBooksyWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
+{
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
+        .WithImage("postgres:16-alpine")
+        .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5432))
+        .Build();
+
+    private Respawner _respawner = null!;
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.UseContentRoot(AppDomain.CurrentDomain.BaseDirectory);
+
+        builder.ConfigureAppConfiguration((_, config) =>
+        {
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["postgres:connectionString"] = _postgres.GetConnectionString(),
+                ["logger:console:enabled"] = "false",
+                ["logger:file:enabled"] = "false",
+                ["managementgroups:module:enabled"] = "true",
+            });
+        });
+    }
+
+    async Task IAsyncLifetime.InitializeAsync()
+    {
+        await _postgres.StartAsync();
+        _ = CreateClient();
+        await InitializeRespawnerAsync();
+    }
+
+    private async Task InitializeRespawnerAsync()
+    {
+        await using var connection = new NpgsqlConnection(_postgres.GetConnectionString());
+        await connection.OpenAsync();
+        _respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
+        {
+            DbAdapter = DbAdapter.Postgres,
+            SchemasToInclude = ["users", "management_groups"],
+            TablesToIgnore = [new Table("users", "Roles")],
+        });
+    }
+
+    public async Task ResetDatabaseAsync()
+    {
+        await using var connection = new NpgsqlConnection(_postgres.GetConnectionString());
+        await connection.OpenAsync();
+        await _respawner.ResetAsync(connection);
+    }
+
+    async Task IAsyncLifetime.DisposeAsync()
+    {
+        await _postgres.DisposeAsync();
+    }
+}

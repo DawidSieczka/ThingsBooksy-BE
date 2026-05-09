@@ -40,3 +40,5 @@ assemblies.Clear();
 modules.Clear();
 
 app.Run();
+
+public partial class Program { }

@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using ThingsBooksy.Shared.Abstractions.Commands;
 using ThingsBooksy.Shared.Abstractions.Events;
 using ThingsBooksy.Shared.Abstractions.Queries;
@@ -90,14 +91,17 @@ public static class Extensions
         string? migrationsAssembly = null) where T : DbContext
     {
         var section = configuration.GetSection(SectionName);
-        var options = section.BindOptions<PostgresOptions>();
-        services.AddDbContext<T>(x => x
-            .UseNpgsql(options.ConnectionString, npgsql =>
+        services.Configure<PostgresOptions>(section);
+        services.AddDbContext<T>((sp, x) =>
+        {
+            var opts = sp.GetRequiredService<IOptions<PostgresOptions>>().Value;
+            x.UseNpgsql(opts.ConnectionString, npgsql =>
             {
                 if (migrationsAssembly is not null)
                     npgsql.MigrationsAssembly(migrationsAssembly);
             })
-            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
+            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+        });
 
         return services;
     }
