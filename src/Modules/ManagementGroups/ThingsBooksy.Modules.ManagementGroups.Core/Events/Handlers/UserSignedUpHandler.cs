@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using ThingsBooksy.Modules.ManagementGroups.Core.DAL;
 using ThingsBooksy.Modules.ManagementGroups.Core.ReadModels;
 using ThingsBooksy.Shared.Abstractions.Events;
+using ThingsBooksy.Shared.Abstractions.Events.Users;
 
 namespace ThingsBooksy.Modules.ManagementGroups.Core.Events.Handlers;
 

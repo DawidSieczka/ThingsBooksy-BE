@@ -34,6 +34,7 @@ Modular Monolith — one deployable artifact, isolated independent modules.
   - `{Module}.Core` — domain entities, EF DbContext, command/query handlers, domain events, value objects
   - `{Module}.Migrations` — EF migrations (separate project, optional)
 - `src/Shared/ThingsBooksy.Shared.Abstractions` — shared contracts only (events, interfaces); no module-specific types here
+  - Events are organized by producing module: `Events/{ModuleName}/SomeEvent.cs` → namespace `ThingsBooksy.Shared.Abstractions.Events.{ModuleName}`
 - `src/Bootstrapper/ThingsBooksy.Bootstrapper` — composes and starts all modules
 
 ---
@@ -136,6 +137,53 @@ Claude (main session) is the orchestrator — it reads this file to decide when 
 | Agent | When to delegate |
 |---|---|
 | `agent-architect` | Designing a new agent, exploring what agents could improve the workflow, growing the fleet |
+| `product-strategist` | User wants to define or clarify a feature before implementation — conducts an interactive two-phase interview (business then technical) and produces a handoff brief for /speckit-specify |
+| `doc-writer` | After product-strategist produces a handoff brief — immediately delegate to doc-writer to create the ADR. Also use when user declares a Stage 3 pivot. |
+| `plan-validator` | After /speckit-tasks completes and before /speckit-implement — runs deterministic consistency checks on spec.md, plan.md, tasks.md and produces a VERDICT (GO/NO-GO) with an EXECUTION MAP grouping tasks into parallel waves |
+| `contract-definer` | After plan-validator returns GO with an EXECUTION MAP containing cross-module dependencies — defines and writes all IEvent and IModuleClient contract types in ThingsBooksy.Shared.Abstractions before any module-writer is invoked |
+| `module-writer` | After contract-definer reports "All contracts are ready" (or after plan-validator GO with no cross-module dependencies) — spawn one instance per module per Wave, passing module name and assigned task IDs; instances for independent modules may run in parallel |
+| `migration-agent` | After module-writer reports `Schema changes` other than NONE — receives module name and Schema changes block, generates migration name, runs dotnet ef migrations add, reports schema summary |
+| `quality-reviewer` | After migration-agent completes (or directly after module-writer if Schema changes: NONE) — interactive code review session, one issue at a time; ends with QUALITY-REVIEWER COMPLETE block |
+| `integration-test-writer` | After quality-reviewer ends the session — spawn one instance per module, passing module name and assigned task IDs; instances for independent modules may run in parallel |
+| `architecture-guard` | After integration-test-writer reports INTEGRATION-TEST-WRITER COMPLETE for all modules in the current Wave — checks the full solution for cross-module architectural violations. Interactive review, one violation at a time. Ends with ARCHITECTURE-GUARD COMPLETE block. |
+
+### Orchestration rule — doc-writer
+
+After `product-strategist` returns a handoff brief, immediately delegate to `doc-writer` without waiting for a separate user instruction. Pass the full handoff brief as input. Do not proceed to `/speckit-specify` until `doc-writer` confirms the ADR was written.
+
+### Orchestration rule — plan-validator
+
+After `plan-validator` returns NO-GO, do not proceed to `/speckit-implement`. Surface the BLOCKING issues to the user and wait for corrections before re-running. If VERDICT is GO, pass the EXECUTION MAP to `/speckit-implement` as context for parallel task scheduling.
+
+### Orchestration rule — contract-definer
+
+After `plan-validator` returns GO, inspect the EXECUTION MAP for cross-module dependencies. If any exist, delegate to `contract-definer` before invoking any `module-writer`. Pass the full EXECUTION MAP and the `.specify/` path as input. Do not start module implementation until `contract-definer` reports "All contracts are ready." If the EXECUTION MAP contains no cross-module dependencies, skip `contract-definer` and proceed directly to `module-writer`.
+
+### Orchestration rule — migration-agent
+
+After `module-writer` completes for a module, inspect its `Schema changes` field. If the value is anything other than `NONE`, delegate to `migration-agent` before invoking `quality-reviewer`. Pass the module name and the full Schema changes block as input. Do not invoke `quality-reviewer` until `migration-agent` reports `MIGRATION-AGENT COMPLETE`. If `Schema changes: NONE`, skip `migration-agent` entirely and proceed directly to `quality-reviewer`.
+
+### Orchestration rule — quality-reviewer
+
+After `migration-agent` reports `MIGRATION-AGENT COMPLETE` (or directly after `module-writer` if `Schema changes: NONE`), delegate to `quality-reviewer`. Pass the module name and the `Written files` list from the MODULE-WRITER COMPLETE block. Wait for the user to complete the interactive review session (signalled by `QUALITY-REVIEWER COMPLETE`). Do not invoke `integration-test-writer` until the review session ends.
+
+### Orchestration rule — integration-test-writer
+
+After `quality-reviewer` reports `QUALITY-REVIEWER COMPLETE` for a module, immediately delegate to `integration-test-writer`, passing the same module name and task IDs. Multiple instances may run in parallel for independent modules. Do not mark a Wave as complete until `integration-test-writer` reports `Test run: PASSED {n}/{n}` with no failures.
+
+### Orchestration rule — architecture-guard
+
+After `integration-test-writer` reports `INTEGRATION-TEST-WRITER COMPLETE` for **all** modules in the current Wave, delegate to `architecture-guard`. Pass the list of Wave module names as input. Wait for the user to complete the interactive review session (signalled by `ARCHITECTURE-GUARD COMPLETE`). Do not mark the Wave as complete until the block is received.
+
+**If `Challenged (no resolution)` is greater than zero — repair loop:**
+
+1. For each unresolved BLOCKER, identify the affected module from the violation location.
+2. Re-invoke `module-writer` for that module, passing the violation description instead of task IDs. Instruct it to fix only the reported violation — no new features.
+3. Run the full tail pipeline for that module: `migration-agent` (if Schema changes) → `quality-reviewer` → `integration-test-writer`.
+4. Re-invoke `architecture-guard` with the same Wave module list.
+5. If `architecture-guard` still reports the same BLOCKER after 2 repair iterations, stop and surface the issue to the user — do not loop further.
+
+**Manual prerequisite for new modules:** Before invoking `integration-test-writer` on a module that did not previously have integration tests, manually add the module's EF Core schema name to `SchemasToInclude` in `ThingsBooksyWebAppFactory.cs` (in `src/Shared/ThingsBooksy.Shared.IntegrationTests/`). Failing to do so causes silent test pollution — Respawn will not clean the new module's data between tests.
 
 ### Naming convention
 

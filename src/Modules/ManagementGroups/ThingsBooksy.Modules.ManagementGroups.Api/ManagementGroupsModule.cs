@@ -17,6 +17,7 @@ using ThingsBooksy.Modules.ManagementGroups.Core.Features.RestoreManagementGroup
 using ThingsBooksy.Modules.ManagementGroups.Core.Features.UpdateManagementGroup;
 using ThingsBooksy.Shared.Abstractions.Dispatchers;
 using ThingsBooksy.Shared.Abstractions.Events;
+using ThingsBooksy.Shared.Abstractions.Events.Users;
 using ThingsBooksy.Shared.Abstractions.Modules;
 
 namespace ThingsBooksy.Modules.ManagementGroups.Api;

@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using DotNet.Testcontainers.Builders;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Respawn;
 using Respawn.Graph;
@@ -42,7 +45,24 @@ public class ThingsBooksyWebAppFactory : WebApplicationFactory<Program>, IAsyncL
     {
         await _postgres.StartAsync();
         _ = CreateClient();
+        await ApplyMigrationsAsync();
         await InitializeRespawnerAsync();
+    }
+
+    private async Task ApplyMigrationsAsync()
+    {
+        using var scope = Services.CreateScope();
+        var sp = scope.ServiceProvider;
+
+        var dbContextTypes = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(a => a.GetTypes())
+            .Where(t => t.IsSubclassOf(typeof(DbContext)) && !t.IsAbstract);
+
+        foreach (var dbContextType in dbContextTypes)
+        {
+            if (sp.GetService(dbContextType) is DbContext context)
+                await context.Database.MigrateAsync();
+        }
     }
 
     private async Task InitializeRespawnerAsync()
