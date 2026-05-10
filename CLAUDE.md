@@ -217,4 +217,5 @@ All agents live in `.claude/agents/` (root only — nested directories are not s
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
+at specs/003-resource-schema/plan.md
 <!-- SPECKIT END -->
