@@ -7,6 +7,8 @@ using ThingsBooksy.Modules.ManagementGroups.Core.DAL;
 using ThingsBooksy.Modules.ManagementGroups.Core.Domain;
 using ThingsBooksy.Modules.ManagementGroups.Core.Exceptions;
 using ThingsBooksy.Shared.Abstractions.Commands;
+using ThingsBooksy.Shared.Abstractions.Events.ManagementGroups;
+using ThingsBooksy.Shared.Abstractions.Messaging;
 using ThingsBooksy.Shared.Abstractions.Time;
 
 namespace ThingsBooksy.Modules.ManagementGroups.Core.Features.AddGroupMember;
@@ -17,11 +19,13 @@ internal sealed class AddGroupMemberHandler : ICommandHandler<AddGroupMemberComm
 
     private readonly ManagementGroupsDbContext _dbContext;
     private readonly IClock _clock;
+    private readonly IMessageBroker _messageBroker;
 
-    public AddGroupMemberHandler(ManagementGroupsDbContext dbContext, IClock clock)
+    public AddGroupMemberHandler(ManagementGroupsDbContext dbContext, IClock clock, IMessageBroker messageBroker)
     {
         _dbContext = dbContext;
         _clock = clock;
+        _messageBroker = messageBroker;
     }
 
     public async Task HandleAsync(AddGroupMemberCommand command, CancellationToken cancellationToken = default)
@@ -50,5 +54,6 @@ internal sealed class AddGroupMemberHandler : ICommandHandler<AddGroupMemberComm
         var member = GroupMember.Create(group.Id, userReadModel.Id, _clock.CurrentDate());
         group.Members.Add(member);
         await _dbContext.SaveChangesAsync(cancellationToken);
+        await _messageBroker.PublishAsync(new GroupMemberAdded(command.GroupId, userReadModel.Id), cancellationToken);
     }
 }

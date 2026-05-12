@@ -5,16 +5,20 @@ using Microsoft.EntityFrameworkCore;
 using ThingsBooksy.Modules.ManagementGroups.Core.DAL;
 using ThingsBooksy.Modules.ManagementGroups.Core.Exceptions;
 using ThingsBooksy.Shared.Abstractions.Commands;
+using ThingsBooksy.Shared.Abstractions.Events.ManagementGroups;
+using ThingsBooksy.Shared.Abstractions.Messaging;
 
 namespace ThingsBooksy.Modules.ManagementGroups.Core.Features.RemoveGroupMember;
 
 internal sealed class RemoveGroupMemberHandler : ICommandHandler<RemoveGroupMemberCommand>
 {
     private readonly ManagementGroupsDbContext _dbContext;
+    private readonly IMessageBroker _messageBroker;
 
-    public RemoveGroupMemberHandler(ManagementGroupsDbContext dbContext)
+    public RemoveGroupMemberHandler(ManagementGroupsDbContext dbContext, IMessageBroker messageBroker)
     {
         _dbContext = dbContext;
+        _messageBroker = messageBroker;
     }
 
     public async Task HandleAsync(RemoveGroupMemberCommand command, CancellationToken cancellationToken = default)
@@ -35,5 +39,6 @@ internal sealed class RemoveGroupMemberHandler : ICommandHandler<RemoveGroupMemb
 
         group.Members.Remove(member);
         await _dbContext.SaveChangesAsync(cancellationToken);
+        await _messageBroker.PublishAsync(new GroupMemberRemoved(command.GroupId, command.UserId), cancellationToken);
     }
 }

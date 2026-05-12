@@ -1,0 +1,8 @@
+{
+  "resources": {
+    "module": {
+      "name": "Resources",
+      "enabled": true
+    }
+  }
+}

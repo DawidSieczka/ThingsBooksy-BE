@@ -12,6 +12,7 @@ using ThingsBooksy.Shared.Infrastructure.Postgres;
 
 [assembly: InternalsVisibleTo("ThingsBooksy.Modules.Users.Api")]
 [assembly: InternalsVisibleTo("ThingsBooksy.Modules.Users.Migrations")]
+[assembly: InternalsVisibleTo("ThingsBooksy.Modules.Users.IntegrationTests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 namespace ThingsBooksy.Modules.Users.Core;

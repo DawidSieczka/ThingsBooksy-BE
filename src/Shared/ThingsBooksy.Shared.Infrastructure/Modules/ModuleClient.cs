@@ -52,8 +52,7 @@ public sealed class ModuleClient : IModuleClient
         var module = message.GetModuleName();
         var key = message.GetType().Name;
         var registrations = _moduleRegistry
-            .GetBroadcastRegistrations(key)
-            .Where(r => r.ReceiverType != message.GetType());
+            .GetBroadcastRegistrations(key);
 
         var tasks = new List<Task>();
 

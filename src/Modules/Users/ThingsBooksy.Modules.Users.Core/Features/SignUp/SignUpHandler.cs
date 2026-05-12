@@ -3,10 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using ThingsBooksy.Modules.Users.Contracts.Events;
 using ThingsBooksy.Modules.Users.Core.Entities;
 using ThingsBooksy.Modules.Users.Core.Exceptions;
 using ThingsBooksy.Shared.Abstractions.Commands;
+using ThingsBooksy.Shared.Abstractions.Events.Users;
 using ThingsBooksy.Shared.Abstractions.Messaging;
 using ThingsBooksy.Shared.Abstractions.Time;
 using ThingsBooksy.Shared.Infrastructure.Security;
@@ -79,8 +79,7 @@ internal sealed class SignUpHandler : ICommandHandler<SignUpCommand>
             throw new UsersDomainException("Email is already in use.");
         }
 
-        await _messageBroker.PublishAsync(new SignedUp(user.Id, email, role.Name, jobTitle), cancellationToken);
-        await _messageBroker.PublishAsync(new ThingsBooksy.Shared.Abstractions.Events.Users.UserSignedUp(user.Id, email), cancellationToken);
+        await _messageBroker.PublishAsync(new UserSignedUp(user.Id, email), cancellationToken);
         _logger.LogInformation("User with ID: '{UserId}' has signed up.", user.Id);
     }
 
