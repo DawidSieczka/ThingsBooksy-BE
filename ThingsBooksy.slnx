@@ -4,6 +4,12 @@
     <Project Path="src/Bootstrapper/ThingsBooksy.Bootstrapper/ThingsBooksy.Bootstrapper.csproj" />
   </Folder>
   <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Resources/">
+    <Project Path="src/Modules/Resources/ThingsBooksy.Modules.Resources.Api/ThingsBooksy.Modules.Resources.Api.csproj" />
+    <Project Path="src/Modules/Resources/ThingsBooksy.Modules.Resources.Core/ThingsBooksy.Modules.Resources.Core.csproj" />
+    <Project Path="src/Modules/Resources/ThingsBooksy.Modules.Resources.Migrations/ThingsBooksy.Modules.Resources.Migrations.csproj" />
+    <Project Path="src/Modules/Resources/ThingsBooksy.Modules.Resources.IntegrationTests/ThingsBooksy.Modules.Resources.IntegrationTests.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/ManagementGroups/">
     <Project Path="src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.Api/ThingsBooksy.Modules.ManagementGroups.Api.csproj" />
     <Project Path="src/Modules/ManagementGroups/ThingsBooksy.Modules.ManagementGroups.Core/ThingsBooksy.Modules.ManagementGroups.Core.csproj" />
@@ -12,7 +18,6 @@
   </Folder>
   <Folder Name="/src/Modules/Users/">
     <Project Path="src/Modules/Users/ThingsBooksy.Modules.Users.Api/ThingsBooksy.Modules.Users.Api.csproj" />
-    <Project Path="src/Modules/Users/ThingsBooksy.Modules.Users.Contracts/ThingsBooksy.Modules.Users.Contracts.csproj" />
     <Project Path="src/Modules/Users/ThingsBooksy.Modules.Users.Core/ThingsBooksy.Modules.Users.Core.csproj" />
     <Project Path="src/Modules/Users/ThingsBooksy.Modules.Users.Migrations/ThingsBooksy.Modules.Users.Migrations.csproj" />
     <Project Path="src/Modules/Users/ThingsBooksy.Modules.Users.IntegrationTests/ThingsBooksy.Modules.Users.IntegrationTests.csproj" />

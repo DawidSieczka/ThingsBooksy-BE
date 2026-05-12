@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Shared\ThingsBooksy.Shared.Infrastructure\ThingsBooksy.Shared.Infrastructure.csproj" />
-    <ProjectReference Include="..\ThingsBooksy.Modules.Users.Contracts\ThingsBooksy.Modules.Users.Contracts.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

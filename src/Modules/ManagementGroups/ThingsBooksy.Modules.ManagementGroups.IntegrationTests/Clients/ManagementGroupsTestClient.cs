@@ -5,9 +5,12 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Npgsql;
 using ThingsBooksy.Modules.ManagementGroups.Core.DAL;
 using ThingsBooksy.Modules.ManagementGroups.Core.Domain;
 using ThingsBooksy.Modules.ManagementGroups.Core.ReadModels;
+using ThingsBooksy.Shared.Infrastructure.Postgres;
 using ThingsBooksy.Shared.IntegrationTests;
 using ThingsBooksy.Shared.IntegrationTests.Clients;
 
@@ -86,5 +89,45 @@ public class ManagementGroupsTestClient
         var db = scope.ServiceProvider.GetRequiredService<ManagementGroupsDbContext>();
         return await db.UserReadModels
             .FirstOrDefaultAsync(x => x.Email == email);
+    }
+
+    // --- Resources schema DB helpers (raw SQL — no cross-module type import) ---
+
+    internal async Task<bool> ResourcesGroupReadModelExistsAsync(Guid groupId)
+    {
+        await using var connection = new NpgsqlConnection(GetConnectionString());
+        await connection.OpenAsync();
+        await using var cmd = new NpgsqlCommand(
+            """SELECT COUNT(1) FROM resources.group_read_models WHERE "Id" = @id""",
+            connection);
+        cmd.Parameters.AddWithValue("id", groupId);
+        var count = (long)(await cmd.ExecuteScalarAsync())!;
+        return count > 0;
+    }
+
+    internal async Task<bool> ResourcesGroupReadModelAbsentAsync(Guid groupId)
+        => !await ResourcesGroupReadModelExistsAsync(groupId);
+
+    internal async Task<bool> ResourcesGroupMemberReadModelExistsAsync(Guid groupId, Guid userId)
+    {
+        await using var connection = new NpgsqlConnection(GetConnectionString());
+        await connection.OpenAsync();
+        await using var cmd = new NpgsqlCommand(
+            """SELECT COUNT(1) FROM resources.group_member_read_models WHERE "GroupId" = @groupId AND "UserId" = @userId""",
+            connection);
+        cmd.Parameters.AddWithValue("groupId", groupId);
+        cmd.Parameters.AddWithValue("userId", userId);
+        var count = (long)(await cmd.ExecuteScalarAsync())!;
+        return count > 0;
+    }
+
+    internal async Task<bool> ResourcesGroupMemberReadModelAbsentAsync(Guid groupId, Guid userId)
+        => !await ResourcesGroupMemberReadModelExistsAsync(groupId, userId);
+
+    private string GetConnectionString()
+    {
+        using var scope = _factory.Services.CreateScope();
+        return scope.ServiceProvider
+            .GetRequiredService<IOptions<PostgresOptions>>().Value.ConnectionString;
     }
 }

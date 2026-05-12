@@ -3,11 +3,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using ThingsBooksy.Modules.Users.Contracts.Events;
 using ThingsBooksy.Modules.Users.Core.Exceptions;
 using ThingsBooksy.Modules.Users.Core.Services;
 using ThingsBooksy.Shared.Abstractions.Commands;
-using ThingsBooksy.Shared.Abstractions.Messaging;
 using ThingsBooksy.Shared.Infrastructure.Auth.JWT;
 using ThingsBooksy.Shared.Infrastructure.Security;
 
@@ -21,7 +19,6 @@ internal sealed class SignInHandler : ICommandHandler<SignInCommand>
     private readonly IJsonWebTokenManager _jwtManager;
     private readonly IPasswordManager _passwordManager;
     private readonly ITokenStorage _tokenStorage;
-    private readonly IMessageBroker _messageBroker;
     private readonly ILogger<SignInHandler> _logger;
 
     public SignInHandler(
@@ -29,14 +26,12 @@ internal sealed class SignInHandler : ICommandHandler<SignInCommand>
         IJsonWebTokenManager jwtManager,
         IPasswordManager passwordManager,
         ITokenStorage tokenStorage,
-        IMessageBroker messageBroker,
         ILogger<SignInHandler> logger)
     {
         _repository = repository;
         _jwtManager = jwtManager;
         _passwordManager = passwordManager;
         _tokenStorage = tokenStorage;
-        _messageBroker = messageBroker;
         _logger = logger;
     }
 
@@ -63,7 +58,6 @@ internal sealed class SignInHandler : ICommandHandler<SignInCommand>
         var jwt = _jwtManager.CreateToken(user.Id.ToString(), user.Email, user.Role.Name, claims: claims);
         jwt.Email = user.Email;
 
-        await _messageBroker.PublishAsync(new SignedIn(user.Id), cancellationToken);
         _logger.LogInformation("User with ID: '{UserId}' has signed in.", user.Id);
         _tokenStorage.Set(jwt);
     }
