@@ -39,6 +39,26 @@ Modular Monolith — one deployable artifact, isolated independent modules.
 
 ---
 
+## Coding conventions
+
+All coding conventions live in `.claude/conventions/`. Read the relevant file before writing or reviewing code. Every agent that writes or reviews code must follow these files exactly.
+
+| Convention file | Rule summary |
+|---|---|
+| `domain-entity-design.md` | `private set` on all properties, `private` ctor, `Create` factory, `Upsert` for read-models, command object as parameter, max 4 params, `Guid.CreateVersion7()` |
+| `naming-commands-queries-handlers-results.md` | PascalCase, full unambiguous names, `Command`/`CommandHandler`/`Query`/`QueryHandler` suffixes, Result derived from handler name, one class per file |
+| `data-provider-pattern.md` | Handlers never inject `DbContext` directly; use `IXxxDataProvider`; `AddDataProviders` called once per module in `Extensions.cs`; async eliding |
+| `data-provider-query-syntax.md` | Parenthesized LINQ query syntax for joins/group by; method syntax only for simple single-table queries |
+| `command-construction-in-endpoints.md` | Commands never bound directly from HTTP body; request DTO in `{Module}.Api/Requests/`; server-sourced values injected explicitly |
+| `minimal-api-endpoints.md` | No `ControllerBase`; endpoints in `Expose()`; `/{module-name}/...` prefix; `AddEndpointsApiExplorer()` in `Register()` |
+| `dispatcher-usage.md` | `IDispatcher.SendAsync` for commands, `IDispatcher.QueryAsync` for queries; no direct handler calls; no MediatR |
+| `ef-schema-isolation.md` | `HasDefaultSchema(lowercase_snake_case)` mandatory in every `DbContext`; never `"public"`; schema = module name |
+| `internals-visible-to.md` | Every `.Core` project declares 4 `InternalsVisibleTo` attributes: `.Api`, `.Migrations`, `.IntegrationTests`, `DynamicProxyGenAssembly2` |
+| `integration-test-naming.md` | `{Action}{Entity}_{Condition}_{Result}` — status code or behavioral description as last segment |
+| `integration-test-infrastructure.md` | TestClient (HTTP + DB methods), Factory (per entity), IntegrationTestCollection (per module); user instantiated per test |
+
+---
+
 ## Hard rules (non-negotiable)
 
 ### Module boundaries
@@ -47,25 +67,11 @@ Modular Monolith — one deployable artifact, isolated independent modules.
 - If a module needs data from another, it subscribes to events and stores a local **read-model** — never queries another module's database
 
 ### Domain entities
-- All properties have `private set`
-- Parameterless constructor is `private`
-- Creation only via static factory method: `public static SomeEntity Create(...)`
-- State mutations only through explicit domain methods (`Update`, `Delete`, `Restore`, etc.)
-
-```csharp
-internal class SomeEntity
-{
-    public Guid Id { get; private set; }
-    public string Name { get; private set; } = null!;
-
-    private SomeEntity() { }
-
-    public static SomeEntity Create(string name)
-        => new() { Id = Guid.CreateVersion7(), Name = name };
-
-    public void Update(string name) => Name = name;
-}
-```
+See `.claude/conventions/domain-entity-design.md` for the full rule. Summary:
+- All properties have `private set`; parameterless constructor is `private`
+- Creation only via `public static SomeEntity Create(SomeCommand command)` — pass a command object, not raw primitives
+- State mutations only through named domain methods (`Update`, `Delete`, `Restore`, etc.)
+- Maximum 4 parameters on factory and mutation methods
 
 ### Identifiers — GUID v7
 - **Always** `Guid.CreateVersion7()` — `Guid.NewGuid()` is **forbidden**
@@ -73,17 +79,18 @@ internal class SomeEntity
 - Foreign-key references (e.g., `OwnerId`, `GroupId`) are accepted from outside — they point to existing entities
 
 ### Persistence
-- Each module has its own EF Core `DbContext` and an isolated schema named after the module
+- Each module has its own EF Core `DbContext` and an isolated schema (lowercase snake_case, e.g. `"bookings"`, `"management_groups"`)
+- `HasDefaultSchema(...)` is mandatory — never use `"public"` (see `.claude/conventions/ef-schema-isolation.md`)
 - Migrations live in `{Module}.Migrations`
 
 ### HTTP / Swagger
-- All endpoints use Minimal API — **no MVC controllers**
+- All endpoints use Minimal API — **no MVC controllers** (see `.claude/conventions/minimal-api-endpoints.md`)
 - Always call `services.AddEndpointsApiExplorer()` so Swagger picks up Minimal API endpoints
 - Swagger must remain at `/swagger` in all environments
 - Route prefix pattern: `/{module-name}/...`
 
 ### No heavy frameworks
-- **No MediatR** — use `IDispatcher` for commands and queries
+- **No MediatR** — use `IDispatcher` for commands and queries (see `.claude/conventions/dispatcher-usage.md`)
 - **No AutoMapper** — map manually
 - Prefer built-in .NET over external libraries (YAGNI)
 
@@ -137,6 +144,7 @@ Claude (main session) is the orchestrator — it reads this file to decide when 
 | Agent | When to delegate |
 |---|---|
 | `agent-architect` | Designing a new agent, exploring what agents could improve the workflow, growing the fleet |
+| `convention-writer` | User wants to write a new coding convention — interactive agent that challenges the proposal, refines through dialogue, and writes the rule to `.claude/conventions/` after approval |
 | `product-strategist` | User wants to define or clarify a feature before implementation — conducts an interactive two-phase interview (business then technical) and produces a handoff brief for /speckit-specify |
 | `doc-writer` | After product-strategist produces a handoff brief — immediately delegate to doc-writer to create the ADR. Also use when user declares a Stage 3 pivot. |
 | `plan-validator` | After /speckit-tasks completes and before /speckit-implement — runs deterministic consistency checks on spec.md, plan.md, tasks.md and produces a VERDICT (GO/NO-GO) with an EXECUTION MAP grouping tasks into parallel waves |
@@ -211,6 +219,7 @@ All agents live in `.claude/agents/` (root only — nested directories are not s
 ## Key files
 
 - `.specify/memory/constitution.md` — authoritative architecture rules (full version of what is summarized here; read it before proposing cross-module changes or new modules)
+- `.claude/conventions/` — coding conventions (DataProvider pattern, naming, command construction, endpoint structure, test patterns); read before writing or reviewing code
 - `src/Bootstrapper/ThingsBooksy.Bootstrapper` — startup composition and module registration
 - `src/Shared/ThingsBooksy.Shared.Abstractions` — shared event/message contracts
 

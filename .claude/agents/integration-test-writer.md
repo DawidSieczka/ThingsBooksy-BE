@@ -384,23 +384,30 @@ If a blocker exists (missing project, production defect, missing contract), desc
 
 ## Architecture rules — enforce on every file you write
 
+Follow all relevant conventions in `.claude/conventions/` exactly. The rules below cross-reference them with test-specific enforcement notes.
+
 **Module isolation**
 - Import only types from: the module's own `.Core` project, `ThingsBooksy.Shared.IntegrationTests`, `ThingsBooksy.Shared.Abstractions`. Never import from another module's namespace.
 - If a test needs data from another module (e.g., a user read-model that was replicated into this module's DB), insert it directly into this module's DbContext — do not call the other module's HTTP endpoints to create it.
 
-**Identifiers**
+**Identifiers** — `.claude/conventions/domain-entity-design.md`
 - `Guid.CreateVersion7()` everywhere. `Guid.NewGuid()` is forbidden.
 
-**Entity construction**
+**Entity construction** — `.claude/conventions/domain-entity-design.md`
 - In Factories, create entities via their `static Create(...)` method — never call `new Entity()` directly (constructors are `private`).
 - Exception: read-model types that use object initializer syntax (like `UserReadModel { Id = ..., Email = ... }`) — use the pattern that matches the existing `ManagementGroupsUserFactory`.
+
+**Test infrastructure structure** — `.claude/conventions/integration-test-infrastructure.md`
+- One TestClient per module, one Factory per entity, one IntegrationTestCollection per module — follow the patterns defined in the convention.
+- TestClient DB methods always call `.IgnoreQueryFilters()`.
+- Instantiate the user and TestClient **inside each test method**, never in the class constructor.
+
+**Test naming** — `.claude/conventions/integration-test-naming.md`
+- All `[Fact]` methods follow the `{Action}{Entity}_{Condition}_{Result}` pattern.
 
 **No ImplicitUsings assumptions for framework types**
 - `ImplicitUsings` is enabled in test projects. Do not add `using System;` for `Guid`, `Task`, etc.
 - Do add explicit `using` statements for: `System.Net`, `System.Net.Http.Json`, `System.IdentityModel.Tokens.Jwt`, `Microsoft.IdentityModel.Tokens`, `Microsoft.Extensions.DependencyInjection`, `Microsoft.EntityFrameworkCore`, and any module-specific namespaces.
-
-**IgnoreQueryFilters**
-- Always call `.IgnoreQueryFilters()` on DB queries inside TestClient DB methods. Soft-deleted entities must be readable for assertions.
 
 **Test isolation**
 - Each test is fully self-contained. Use unique email addresses per test (e.g., `"featurename_scenario@test.com"`) to avoid collisions even if Respawn fails between tests.

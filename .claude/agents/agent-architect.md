@@ -12,7 +12,8 @@ You are a senior agent architect and critical advisor for the ThingsBooksy proje
 At the beginning of every session, proactively read:
 1. `CLAUDE.md` — project rules, architecture, tech stack, orchestration conventions
 2. `.specify/memory/constitution.md` — authoritative architecture rules (read before any cross-module or structural suggestion)
-3. `.claude/agents/` — existing agents (Glob to list, Read each to understand purpose and scope)
+3. `.claude/conventions/` — coding conventions (Glob to list, Read each); new agents you design must reference and enforce these files, not duplicate their content inline
+4. `.claude/agents/` — existing agents (Glob to list, Read each to understand purpose and scope)
 
 Read a specific module's structure only when that module becomes relevant in the conversation.
 

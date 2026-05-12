@@ -65,17 +65,23 @@ Run every check below. Collect all findings before producing output — do not s
 
 ### CHECK 1 — GUID v7 enforcement
 
+Rule: `.claude/conventions/domain-entity-design.md`
+
 Search all in-scope source files for `Guid.NewGuid()`. Every occurrence is a BLOCKER.
 
 Expected: `Guid.CreateVersion7()` everywhere. New entity IDs are generated inside `Create(...)`. Foreign-key references may be accepted as parameters.
 
 ### CHECK 2 — Domain entity encapsulation
 
+Rule: `.claude/conventions/domain-entity-design.md`
+
 For every domain entity file in scope, verify:
 - All properties have `private set` → BLOCKER if any property has `public set` or no accessor modifier
 - The constructor is `private` → BLOCKER if there is a `public` or `protected` parameterless constructor
 - The entity exposes a `public static Create(...)` factory method → BLOCKER if creation goes through a public constructor
 - State mutations happen through named domain methods (`Update`, `Delete`, `Restore`, etc.) → WARNING if mutation is done by directly assigning properties outside an entity method
+- Read-models use `Upsert(TEvent)` as factory name, not `Create` → WARNING if a read-model class uses `Create`
+- Maximum 4 parameters on `Create` and `Update` methods → WARNING if parameter count exceeds 4
 
 ### CHECK 3 — Module boundary isolation
 
@@ -92,12 +98,16 @@ Acceptable cross-module patterns (do NOT flag):
 
 ### CHECK 4 — No forbidden frameworks
 
+Rule: `.claude/conventions/dispatcher-usage.md`
+
 Search in-scope files for:
 - `using MediatR` or any `IMediator` injection → BLOCKER (use `IDispatcher` instead)
 - `using AutoMapper` or any `IMapper` injection → BLOCKER (map manually)
 - Any other external framework that was not in the project's tech stack before this feature — assess case by case → WARNING
 
 ### CHECK 5 — Minimal API compliance
+
+Rule: `.claude/conventions/minimal-api-endpoints.md`
 
 In the module registration file (`{ModuleName}Module.cs`):
 - Verify there are no `[ApiController]` attributes or `ControllerBase` inheritance → BLOCKER
@@ -107,11 +117,15 @@ In the module registration file (`{ModuleName}Module.cs`):
 
 ### CHECK 6 — Schema isolation
 
+Rule: `.claude/conventions/ef-schema-isolation.md`
+
 In `{ModuleName}DbContext.cs`, verify:
-- `modelBuilder.HasDefaultSchema(...)` is set to the module's own schema name (lowercase, e.g. `"management_groups"`, `"bookings"`) → BLOCKER if absent
+- `modelBuilder.HasDefaultSchema(...)` is set to the module's own schema name (lowercase snake_case, e.g. `"management_groups"`, `"bookings"`) → BLOCKER if absent
 - The schema name used in the DbContext matches the module name — not `"public"`, not another module's schema → BLOCKER if wrong schema
 
 ### CHECK 7 — InternalsVisibleTo
+
+Rule: `.claude/conventions/internals-visible-to.md`
 
 In `Extensions.cs` of the `.Core/` project, verify the presence of `[assembly: InternalsVisibleTo(...)]` attributes for:
 - `ThingsBooksy.Modules.{ModuleName}.Api`
@@ -131,6 +145,8 @@ For each task ID in scope, read its description from `tasks.md` and cross-check 
 
 ### CHECK 9 — Dispatcher usage
 
+Rule: `.claude/conventions/dispatcher-usage.md`
+
 In handler registration and endpoint delegates, verify:
 - Commands dispatched via `IDispatcher.SendAsync(...)` → WARNING if dispatched differently
 - Queries dispatched via `IDispatcher.QueryAsync(...)` → WARNING if dispatched differently
@@ -141,6 +157,40 @@ In handler registration and endpoint delegates, verify:
 If any in-scope task involves inter-module events or queries, verify:
 - Event contracts are defined in `src/Shared/ThingsBooksy.Shared.Abstractions/Events/{ProducerModuleName}/` → BLOCKER if an event record is defined inside a module's own project
 - Query contracts are defined in `src/Shared/ThingsBooksy.Shared.Abstractions/Queries/{ProducerModuleName}/` → BLOCKER if a query record is defined inside a module
+
+### CHECK 11 — DataProvider pattern
+
+Rule: `.claude/conventions/data-provider-pattern.md`
+
+For every command handler and query handler in scope, verify:
+- The handler does **not** inject `DbContext` (or any derived `DbContext`) directly → BLOCKER if it does
+- The handler depends on a dedicated `IXxxDataProvider` interface → BLOCKER if absent
+- Interface name follows the derivation rule: strip `Handler`, append `DataProvider` (e.g. `GetBookingQueryHandler` → `IGetBookingQueryDataProvider`) → WARNING if the name deviates
+- Both interface and implementation live in `Features/{Feature}/DataProviders/` → WARNING if placed elsewhere
+- `AddDataProviders([typeof(Extensions).Assembly])` is called in `Extensions.cs` → BLOCKER if absent (providers will not be registered)
+- Data provider methods that are a single awaitable expression use `return Task` directly, not `async`/`await` → NOTE if `async`/`await` is present unnecessarily
+
+Also check DataProvider query syntax (`.claude/conventions/data-provider-query-syntax.md`):
+- Queries involving joins, group by, or multiple data sources use parenthesized LINQ query syntax with chained materialization → WARNING if method syntax is used for such queries
+
+### CHECK 12 — Command construction in endpoints
+
+Rule: `.claude/conventions/command-construction-in-endpoints.md`
+
+For every endpoint that receives a request body, verify:
+- The endpoint does **not** bind a command record directly from the HTTP body → BLOCKER if a command type appears as an endpoint parameter receiving JSON
+- A dedicated request DTO record exists in `{Module}.Api/Requests/` → BLOCKER if absent (or if the DTO is defined inline in the endpoint file)
+- The request DTO contains only client-permitted fields; server-sourced values (route params, JWT-derived IDs, `Guid.CreateVersion7()`) are injected explicitly in the endpoint lambda → WARNING if a server-sourced field appears on the DTO
+
+### CHECK 13 — Naming conventions
+
+Rule: `.claude/conventions/naming-commands-queries-handlers-results.md`
+
+For every command, query, handler, and result type in scope, verify:
+- Names are PascalCase and include module/aggregate context → WARNING if short or ambiguous names are used
+- Suffixes are correct: `Command`, `CommandHandler`, `Query`, `QueryHandler` → WARNING if suffix is missing or wrong
+- Result class name is derived mechanically from handler name (strip `Handler`) → WARNING if name diverges
+- One class per file, file name equals class name → WARNING if multiple types share a file
 
 ---
 
@@ -164,7 +214,7 @@ Produce the following report. This report is human-readable only — no machine 
 
 Module: {ModuleName}
 Tasks reviewed: T001, T003, T005
-Checks run: 10
+Checks run: 13
 
 ---
 
@@ -224,7 +274,7 @@ Rules for the report:
 ## Behavioral rules
 
 - Read all three planning artifacts completely before reading any source file. Never start checking before you have the full picture of what was planned.
-- Run all ten checks regardless of how many BLOCKERs are found. A partial report is less useful to the developer.
+- Run all thirteen checks regardless of how many BLOCKERs are found. A partial report is less useful to the developer.
 - Do not fix code. Do not suggest specific code rewrites. State what rule is violated and which rule it is — implementation is the developer's responsibility.
 - Do not invent issues. If a check passes cleanly, do not mention it in the findings section.
 - Do not ask questions mid-review except in the zero-issues case (Phase 3). If a file is ambiguous, apply conservative judgment and flag it as a WARNING or NOTE.

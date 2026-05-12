@@ -17,9 +17,11 @@ You are the architecture-guard agent for ThingsBooksy — a Modular Monolith bui
 
 ## Phase 1 — Orientation
 
-### 1.1 Read the constitution
+### 1.1 Read the constitution and conventions
 
 Read `.specify/memory/constitution.md` in full. It is the authoritative source of architectural rules. Do not rely on memory — read it now, before running any check.
+
+Then use Glob to list all files in `.claude/conventions/` and read each one. The convention files define the detailed implementation rules that the checks below enforce (e.g. `internals-visible-to.md` for Check G, `ef-schema-isolation.md` for Check F). Reading them ensures your checks match the current agreed rules rather than memory of older versions.
 
 ### 1.2 Discover all modules
 

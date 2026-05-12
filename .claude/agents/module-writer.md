@@ -60,60 +60,58 @@ Implement your tasks in dependency order. Within a task, follow this file-creati
 
 ### Architecture rules — enforce on every file you write
 
-**Domain entities**
+Follow all conventions in `.claude/conventions/` exactly. The rules below cross-reference them with module-specific enforcement notes.
 
-Properties: `private set`. Constructor: `private`. Creation: only via `public static Create(...)`. State mutations: only through named domain methods.
+**Domain entities** — `.claude/conventions/domain-entity-design.md`
 
-Use the incoming command object as the parameter to `Create` and `Update` — not individual primitive fields. If the operation requires additional resolved data (e.g. a `Guid` looked up from another source), add it as an extra parameter after the command. Keep the total parameter count to 5 or fewer. If grouping data into a dedicated model improves clarity, create one.
+- `private set` on every property, `private` parameterless constructor, creation only via `public static Create(...)`, state mutations only through named domain methods (`Update`, `Delete`, `Restore`).
+- Pass the command object as the first parameter to `Create` and `Update`. Add resolved external data (foreign keys, timestamps) as extra parameters after the command. Maximum **4 parameters total**.
+- `Guid.CreateVersion7()` for every new entity ID generated inside `Create()`. `Guid.NewGuid()` is **FORBIDDEN** — replace it if found in existing code.
+- Read-models use `internal static Upsert(TEvent @event)` instead of `Create`.
 
-```csharp
-internal class Booking
-{
-    public Guid Id { get; private set; }
-    public Guid OwnerId { get; private set; }
-    public string Name { get; private set; } = null!;
+**Naming — commands, queries, handlers, results** — `.claude/conventions/naming-commands-queries-handlers-results.md`
 
-    private Booking() { }
+- PascalCase everywhere. Full unambiguous names (module + aggregate context). One class per file, file name = class name.
+- Suffixes: `Command`, `CommandHandler`, `Query`, `QueryHandler`.
+- Result class name derived mechanically from handler name: strip `Handler`, nothing else.
+- Nested result types go in `Models/Results/`.
 
-    public static Booking Create(CreateBookingCommand command)
-        => new() { Id = Guid.CreateVersion7(), Name = command.Name, OwnerId = command.OwnerId };
+**DataProvider pattern** — `.claude/conventions/data-provider-pattern.md`
 
-    // When resolved data is needed alongside the command:
-    public static Booking Create(CreateBookingCommand command, Guid resolvedGroupId)
-        => new() { Id = Guid.CreateVersion7(), Name = command.Name, OwnerId = command.OwnerId, GroupId = resolvedGroupId };
+- Handlers must **never** inject `DbContext` directly. Each handler depends on a dedicated `IXxxDataProvider` interface.
+- Interface name: strip `Handler` from the handler name, append `DataProvider` (e.g. `GetBookingQueryHandler` → `IGetBookingQueryDataProvider`).
+- Both interface and implementation live in `{Module}.Core/Features/{Feature}/DataProviders/`.
+- Call `AddDataProviders([typeof(Extensions).Assembly])` once per module in `Extensions.cs` — no manual `.AddScoped` for providers.
+- Data provider methods that are a single awaitable expression must return the `Task` directly (no `async`/`await`).
 
-    public void Update(UpdateBookingCommand command) => Name = command.Name;
-}
-```
+**DataProvider query syntax** — `.claude/conventions/data-provider-query-syntax.md`
 
-**Identifiers**
-- `Guid.CreateVersion7()` for every new ID generated inside `Create()`
-- `Guid.NewGuid()` is FORBIDDEN — replace it if found in existing code
-- Foreign-key IDs (e.g. `OwnerId`, `GroupId`) are accepted as parameters — they reference existing entities
+- Use parenthesized LINQ query syntax with chained materialization `(from ... select ...).ToListAsync(ct)` for any query involving a join, group by, or more than one data source.
+- Method syntax is permitted only for simple single-table queries.
 
-**Module boundaries**
-- Work only within your assigned module's own namespace, entities, DbContext, and services. For cross-module communication, rely exclusively on contracts from `ThingsBooksy.Shared.Abstractions` — `IEventHandler<TEvent>` to consume events published by other modules, `IModuleClient` for request/response queries.
-- Inter-module events: implement `IEventHandler<TEvent>` — use the contract from `Shared.Abstractions`
-- Inter-module queries: inject `IModuleClient`, use the route string from the comment in the contract file
-- All event and query contracts come from `ThingsBooksy.Shared.Abstractions` — never define them inside the module
-- If a required contract is missing from `Shared.Abstractions`, add the task to "Blocked tasks" in the output block: "contract {Name} not found — contract-definer must define it first"
+**Command construction in endpoints** — `.claude/conventions/command-construction-in-endpoints.md`
 
-**HTTP**
-- Minimal API only — zero MVC controllers
-- Endpoints in `{ModuleName}Module.Expose(IEndpointRouteBuilder)`
-- Route prefix: `/{module-name}/...` (kebab-case)
-- Always call `services.AddEndpointsApiExplorer()` in module registration
-- Request/response DTOs: `record` types in `.Api/`
+- Commands must **never** be bound directly from the HTTP request body.
+- Declare a request DTO `record` in `{Module}.Api/Requests/` containing only client-permitted fields. Construct the command explicitly in the endpoint lambda, injecting server-sourced values (route params, JWT-derived IDs, `Guid.CreateVersion7()`) at the call site.
 
-**Dispatcher**
-- Commands: `await dispatcher.SendAsync(command)` via `IDispatcher`
-- Queries: `await dispatcher.QueryAsync(query)` via `IDispatcher`
-- No MediatR
+**HTTP endpoints** — `.claude/conventions/minimal-api-endpoints.md`
 
-**Persistence**
-- Own `DbContext` with schema named after the module (lowercase), e.g. `modelBuilder.HasDefaultSchema("bookings")`
-- Fluent API in `OnModelCreating` or separate `IEntityTypeConfiguration<T>` classes
-- Register via `AddPostgres<TDbContext>(configuration, migrationAssembly)` and `.AddOutbox<TDbContext>(configuration)`
+- Minimal API only — zero `ControllerBase`, zero `[ApiController]`.
+- All endpoints registered in `Expose(IEndpointRouteBuilder)`.
+- Route prefix: `/{module-name}/...` (kebab-case).
+- `services.AddEndpointsApiExplorer()` called in `Register(IServiceCollection)`.
+
+**Dispatcher** — `.claude/conventions/dispatcher-usage.md`
+
+- Commands: `await dispatcher.SendAsync(command)` via `IDispatcher`.
+- Queries: `await dispatcher.QueryAsync(query)` via `IDispatcher`.
+- No MediatR, no direct handler instantiation.
+
+**Persistence** — `.claude/conventions/ef-schema-isolation.md`
+
+- Own `DbContext` with `modelBuilder.HasDefaultSchema("{module_schema_name}")` (lowercase snake_case).
+- Fluent API in `OnModelCreating` or separate `IEntityTypeConfiguration<T>` classes.
+- Register via `AddPostgres<TDbContext>(configuration, migrationAssembly)` and `.AddOutbox<TDbContext>(configuration)`.
 
 **Services registration pattern:**
 ```csharp
@@ -124,6 +122,7 @@ internal static class Extensions
         return services
             .AddScoped<ICommandHandler<SomeCommand>, SomeCommandHandler>()
             .AddScoped<IQueryHandler<SomeQuery, SomeDto>, SomeQueryHandler>()
+            .AddDataProviders([typeof(Extensions).Assembly])
             .AddPostgres<{ModuleName}DbContext>(configuration, "ThingsBooksy.Modules.{ModuleName}.Migrations")
             .AddOutbox<{ModuleName}DbContext>(configuration)
             .AddUnitOfWork<{ModuleName}UnitOfWork>();
@@ -131,13 +130,22 @@ internal static class Extensions
 }
 ```
 
-**InternalsVisibleTo** — add to the Core project's `Extensions.cs`:
+**InternalsVisibleTo** — `.claude/conventions/internals-visible-to.md`
+
+Add to the Core project's `Extensions.cs`:
 ```csharp
 [assembly: InternalsVisibleTo("ThingsBooksy.Modules.{ModuleName}.Api")]
 [assembly: InternalsVisibleTo("ThingsBooksy.Modules.{ModuleName}.Migrations")]
 [assembly: InternalsVisibleTo("ThingsBooksy.Modules.{ModuleName}.IntegrationTests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 ```
+
+**Module boundaries**
+- Work only within your assigned module's namespace, entities, DbContext, and services.
+- Inter-module events: implement `IEventHandler<TEvent>` using the contract from `Shared.Abstractions`.
+- Inter-module queries: inject `IModuleClient`, use the route string from the comment in the contract file.
+- All event and query contracts come from `ThingsBooksy.Shared.Abstractions` — never define them inside the module.
+- If a required contract is missing, add it to "Blocked tasks": "contract {Name} not found — contract-definer must define it first".
 
 **No AutoMapper** — map manually in handlers and endpoint delegates.
 
