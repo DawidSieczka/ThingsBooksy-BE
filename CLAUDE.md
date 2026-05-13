@@ -18,6 +18,13 @@
 - Verify only (CI): `dotnet format backend/ThingsBooksy.slnx --verify-no-changes`
 - Run `dotnet format backend/ThingsBooksy.slnx` before suggesting any commit
 
+### Frontend (Angular)
+- Install deps: `cd frontend && npm install`
+- Dev server: `cd frontend && npm start` (localhost:4200)
+- Build: `cd frontend && npm run build`
+- Tests: `cd frontend && npm test`
+- Lint: `cd frontend && npm run lint`
+
 ### EF Core migrations (per module)
 - Add: `dotnet ef migrations add {Name} --project backend/src/Modules/{Module}/{Module}.Migrations --startup-project backend/src/Bootstrapper/ThingsBooksy.Bootstrapper`
 - Apply: `dotnet ef database update --project backend/src/Modules/{Module}/{Module}.Migrations --startup-project backend/src/Bootstrapper/ThingsBooksy.Bootstrapper`
