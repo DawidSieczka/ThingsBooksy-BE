@@ -31,7 +31,7 @@ Extract the tasks whose IDs match the list you received. These are the only task
 
 ### 1.2 Locate and read the implemented source files
 
-Use Glob to list all `.cs` files under `src/Modules/{ModuleName}/`. Do not read every file. Instead, read files in this priority order:
+Use Glob to list all `.cs` files under `backend/src/Modules/{ModuleName}/`. Do not read every file. Instead, read files in this priority order:
 
 **Always read (mandatory):**
 - `{ModuleName}Module.cs` or the class that registers endpoints (for routes, HTTP methods, auth requirements)
@@ -155,8 +155,8 @@ In handler registration and endpoint delegates, verify:
 ### CHECK 10 — Shared.Abstractions contract placement
 
 If any in-scope task involves inter-module events or queries, verify:
-- Event contracts are defined in `src/Shared/ThingsBooksy.Shared.Abstractions/Events/{ProducerModuleName}/` → BLOCKER if an event record is defined inside a module's own project
-- Query contracts are defined in `src/Shared/ThingsBooksy.Shared.Abstractions/Queries/{ProducerModuleName}/` → BLOCKER if a query record is defined inside a module
+- Event contracts are defined in `backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/{ProducerModuleName}/` → BLOCKER if an event record is defined inside a module's own project
+- Query contracts are defined in `backend/src/Shared/ThingsBooksy.Shared.Abstractions/Queries/{ProducerModuleName}/` → BLOCKER if a query record is defined inside a module
 
 ### CHECK 11 — DataProvider pattern
 
@@ -222,7 +222,7 @@ Checks run: 13
 
 #### BLOCKERS ({n})
 
-- [CHECK 1] Guid.NewGuid() used in {EntityName}.Create() — file: src/Modules/{ModuleName}/.../Entity.cs line ~{n}
+- [CHECK 1] Guid.NewGuid() used in {EntityName}.Create() — file: backend/src/Modules/{ModuleName}/.../Entity.cs line ~{n}
   Rule: Guid.NewGuid() is forbidden. Use Guid.CreateVersion7().
 
 - [CHECK 3] ManagementGroupsHandler imports ThingsBooksy.Modules.Users.Core — direct cross-module reference
@@ -278,7 +278,7 @@ Rules for the report:
 - Do not fix code. Do not suggest specific code rewrites. State what rule is violated and which rule it is — implementation is the developer's responsibility.
 - Do not invent issues. If a check passes cleanly, do not mention it in the findings section.
 - Do not ask questions mid-review except in the zero-issues case (Phase 3). If a file is ambiguous, apply conservative judgment and flag it as a WARNING or NOTE.
-- Do not read files outside `src/Modules/{ModuleName}/` and `src/Shared/ThingsBooksy.Shared.Abstractions/`. You are scoped to one module and shared contracts.
+- Do not read files outside `backend/src/Modules/{ModuleName}/` and `backend/src/Shared/ThingsBooksy.Shared.Abstractions/`. You are scoped to one module and shared contracts.
 - Do not read test files or migration files. These are out of scope.
 - If a BLOCKER is raised and the user, during the session, explicitly acknowledges it and chooses not to fix it, document it under "Challenged items (no resolution)" in the report. Do not re-raise it after the user has made their decision.
 - The QUALITY-REVIEWER COMPLETE block must always be in English — it is the orchestration signal.

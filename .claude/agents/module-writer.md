@@ -33,13 +33,13 @@ From `tasks.md`, extract only the task entries whose IDs match the list you rece
 
 ### 1.3 Scan the existing module
 
-Use Glob to list all `.cs` files under `src/Modules/{ModuleName}/`. Read the files most relevant to your tasks (entities, DbContext, Extensions.cs, the IModule class). Understand what already exists before writing anything new.
+Use Glob to list all `.cs` files under `backend/src/Modules/{ModuleName}/`. Read the files most relevant to your tasks (entities, DbContext, Extensions.cs, the IModule class). Understand what already exists before writing anything new.
 
 ### 1.4 Scan available contracts
 
 Use Glob to list all `.cs` files under:
-- `src/Shared/ThingsBooksy.Shared.Abstractions/Events/`
-- `src/Shared/ThingsBooksy.Shared.Abstractions/Queries/`
+- `backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/`
+- `backend/src/Shared/ThingsBooksy.Shared.Abstractions/Queries/`
 
 Read any files whose module name matches a dependency declared in `spec.md` or `plan.md`.
 
@@ -160,8 +160,8 @@ Run both steps sequentially.
 `dotnet format` reformats source files according to `.editorconfig` (indentation, using order, spacing). It does not compile.
 
 ```powershell
-dotnet format src\Modules\{ModuleName}\ThingsBooksy.Modules.{ModuleName}.Api\ThingsBooksy.Modules.{ModuleName}.Api.csproj
-dotnet format src\Modules\{ModuleName}\ThingsBooksy.Modules.{ModuleName}.Core\ThingsBooksy.Modules.{ModuleName}.Core.csproj
+dotnet format backend\\src\\Modules\\{ModuleName}\ThingsBooksy.Modules.{ModuleName}.Api\ThingsBooksy.Modules.{ModuleName}.Api.csproj
+dotnet format backend\\src\\Modules\\{ModuleName}\ThingsBooksy.Modules.{ModuleName}.Core\ThingsBooksy.Modules.{ModuleName}.Core.csproj
 ```
 
 ### Step 2 — Build
@@ -169,8 +169,8 @@ dotnet format src\Modules\{ModuleName}\ThingsBooksy.Modules.{ModuleName}.Core\Th
 `dotnet build` compiles the projects and reports errors. It does not format code.
 
 ```powershell
-dotnet build src\Modules\{ModuleName}\ThingsBooksy.Modules.{ModuleName}.Api\ThingsBooksy.Modules.{ModuleName}.Api.csproj --no-restore -v minimal
-dotnet build src\Modules\{ModuleName}\ThingsBooksy.Modules.{ModuleName}.Core\ThingsBooksy.Modules.{ModuleName}.Core.csproj --no-restore -v minimal
+dotnet build backend\\src\\Modules\\{ModuleName}\ThingsBooksy.Modules.{ModuleName}.Api\ThingsBooksy.Modules.{ModuleName}.Api.csproj --no-restore -v minimal
+dotnet build backend\\src\\Modules\\{ModuleName}\ThingsBooksy.Modules.{ModuleName}.Core\ThingsBooksy.Modules.{ModuleName}.Core.csproj --no-restore -v minimal
 ```
 
 If the output contains lines matching `error CS`: read the messages, fix the source files, re-run the build. Repeat until zero `error CS` lines. Do not produce the final output block until the build is green.
@@ -188,11 +188,11 @@ Module: {ModuleName}
 Tasks implemented: T001, T002, T003
 
 Written files:
-- src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.Core/Domain/{EntityName}.cs
-- src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.Core/DAL/{ModuleName}DbContext.cs
-- src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.Core/Features/{FeatureName}/{CommandName}.cs
-- src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.Core/Features/{FeatureName}/{HandlerName}.cs
-- src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.Api/{ModuleName}Module.cs
+- backend/src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.Core/Domain/{EntityName}.cs
+- backend/src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.Core/DAL/{ModuleName}DbContext.cs
+- backend/src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.Core/Features/{FeatureName}/{CommandName}.cs
+- backend/src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.Core/Features/{FeatureName}/{HandlerName}.cs
+- backend/src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.Api/{ModuleName}Module.cs
 
 Build: PASSED
 Format: APPLIED

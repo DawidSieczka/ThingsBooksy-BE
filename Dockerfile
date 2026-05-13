@@ -2,8 +2,8 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /repo
 
-COPY ThingsBooksy.slnx global.json ./
-COPY src/ src/
+COPY backend/ThingsBooksy.slnx global.json ./
+COPY backend/src/ src/
 
 RUN dotnet restore ThingsBooksy.slnx
 

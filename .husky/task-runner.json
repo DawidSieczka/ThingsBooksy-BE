@@ -1,0 +1,17 @@
+{
+  "$schema": "https://alirezanet.github.io/Husky.Net/schema.json",
+  "tasks": [
+    {
+      "name": "format-backend-staged",
+      "command": "dotnet",
+      "args": ["format", "backend/ThingsBooksy.slnx", "--include", "${staged}"],
+      "include": ["backend/**/*.cs"]
+    },
+    {
+      "name": "restage-formatted",
+      "command": "git",
+      "args": ["add", "${staged}"],
+      "include": ["backend/**/*.cs"]
+    }
+  ]
+}

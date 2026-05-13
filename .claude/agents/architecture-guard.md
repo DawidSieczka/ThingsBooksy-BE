@@ -25,7 +25,7 @@ Then use Glob to list all files in `.claude/conventions/` and read each one. The
 
 ### 1.2 Discover all modules
 
-Use Glob to list all directories directly under `src/Modules/`. Each directory is a module. Build the complete list of modules in the solution — checks A, C, D, E, and F operate on the full solution, not only the Wave modules.
+Use Glob to list all directories directly under `backend/src/Modules/`. Each directory is a module. Build the complete list of modules in the solution — checks A, C, D, E, and F operate on the full solution, not only the Wave modules.
 
 ### 1.3 Run all checks
 
@@ -39,7 +39,7 @@ Run every check. For each check, record all violations with their exact file pat
 
 ### Check A — Direct cross-module references [BLOCKER]
 
-For every module in `src/Modules/`, Grep all `.cs` files under that module's directory for `using ThingsBooksy.Modules.` patterns.
+For every module in `backend/src/Modules/`, Grep all `.cs` files under that module's directory for `using ThingsBooksy.Modules.` patterns.
 
 For each match, extract the imported module name from the namespace. A violation occurs when the importing module references a different module's namespace.
 
@@ -48,14 +48,14 @@ Acceptable imports (do NOT flag):
 - `using ThingsBooksy.Shared.Infrastructure`
 - A module importing its own namespace (e.g. `ThingsBooksy.Modules.Users` inside the `Users` module)
 
-Flag as BLOCKER: `src/Modules/Foo/... imports ThingsBooksy.Modules.Bar.*`
+Flag as BLOCKER: `backend/src/Modules/Foo/... imports ThingsBooksy.Modules.Bar.*`
 
 ### Check B — Shared.Abstractions structure compliance [BLOCKER]
 
-Read the directory tree under `src/Shared/ThingsBooksy.Shared.Abstractions/`.
+Read the directory tree under `backend/src/Shared/ThingsBooksy.Shared.Abstractions/`.
 
 **Events:**
-Use Glob to find all `.cs` files under `src/Shared/ThingsBooksy.Shared.Abstractions/Events/`. For each file:
+Use Glob to find all `.cs` files under `backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/`. For each file:
 - Verify it lives under `Events/{ProducerModuleName}/` (one level of subfolder named after a module)
 - Read the file and verify the namespace is `ThingsBooksy.Shared.Abstractions.Events.{ModuleName}`
 - Read the file and verify the type implements `IEvent`
@@ -66,7 +66,7 @@ Flag as BLOCKER any event file that:
 - Does not implement `IEvent`
 
 **Queries:**
-Use Glob to find all `.cs` files under `src/Shared/ThingsBooksy.Shared.Abstractions/Queries/` (if the folder exists). For each file:
+Use Glob to find all `.cs` files under `backend/src/Shared/ThingsBooksy.Shared.Abstractions/Queries/` (if the folder exists). For each file:
 - Verify it lives under `Queries/{ProducerModuleName}/`
 - Verify the namespace is `ThingsBooksy.Shared.Abstractions.Queries.{ModuleName}`
 - Verify the type is a plain `record` (not implementing `IEvent`)
@@ -78,9 +78,9 @@ Grep all `.cs` files under each module's `.Core/` and `.Api/` projects for `impl
 
 ### Check C — Orphaned events: published but no handler [WARNING]
 
-Use Glob to find all `.cs` files in `src/Shared/ThingsBooksy.Shared.Abstractions/Events/`. For each file, extract the event class name.
+Use Glob to find all `.cs` files in `backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/`. For each file, extract the event class name.
 
-For each event class name, Grep all `.cs` files under `src/Modules/` for `IEventHandler<{EventClassName}>`. If no match is found anywhere in the solution, the event is orphaned.
+For each event class name, Grep all `.cs` files under `backend/src/Modules/` for `IEventHandler<{EventClassName}>`. If no match is found anywhere in the solution, the event is orphaned.
 
 Flag as WARNING: `{EventClassName} is published (defined in Shared.Abstractions) but no IEventHandler<{EventClassName}> exists in any module`
 
@@ -88,31 +88,31 @@ Note: an event can legitimately have no handler if it was just defined and a sub
 
 ### Check D — Orphaned IModuleClient routes [WARNING]
 
-Use Glob to find all `.cs` files under `src/Shared/ThingsBooksy.Shared.Abstractions/Queries/` (if the folder exists). For each file, Grep for comment patterns like `// route:` or `// IModuleClient route:` to extract the declared route string.
+Use Glob to find all `.cs` files under `backend/src/Shared/ThingsBooksy.Shared.Abstractions/Queries/` (if the folder exists). For each file, Grep for comment patterns like `// route:` or `// IModuleClient route:` to extract the declared route string.
 
-For each declared route, Grep all `.cs` files under `src/Modules/` for the route string as a string literal. If no Minimal API endpoint registration contains that route, the contract is orphaned.
+For each declared route, Grep all `.cs` files under `backend/src/Modules/` for the route string as a string literal. If no Minimal API endpoint registration contains that route, the contract is orphaned.
 
 Flag as WARNING: `Query contract {TypeName} declares route "{route}" but no endpoint in any module handles this route`
 
 ### Check E — Module registration completeness [BLOCKER]
 
-Use Glob to list all directories directly under `src/Modules/`. This is the authoritative list of modules.
+Use Glob to list all directories directly under `backend/src/Modules/`. This is the authoritative list of modules.
 
-Read the startup/program file in `src/Bootstrapper/ThingsBooksy.Bootstrapper/`. Search for it with Glob (`**/*.cs`) — likely `Program.cs` or `Startup.cs`.
+Read the startup/program file in `backend/src/Bootstrapper/ThingsBooksy.Bootstrapper/`. Search for it with Glob (`**/*.cs`) — likely `Program.cs` or `Startup.cs`.
 
 For each module directory, check that the startup file contains a registration call referencing that module: `Use{ModuleName}Module`, `Add{ModuleName}`, or an equivalent pattern that includes the module name. If no such reference exists, the module is silently excluded from the application.
 
-Flag as BLOCKER: `Module {ModuleName} exists under src/Modules/ but has no registration call in the Bootstrapper`
+Flag as BLOCKER: `Module {ModuleName} exists under backend/src/Modules/ but has no registration call in the Bootstrapper`
 
 ### Check F — EF schema uniqueness [BLOCKER]
 
-Use Glob to find all `*DbContext.cs` files under `src/Modules/`. For each file, Grep for `HasDefaultSchema` and extract the schema name string.
+Use Glob to find all `*DbContext.cs` files under `backend/src/Modules/`. For each file, Grep for `HasDefaultSchema` and extract the schema name string.
 
 Build a map of `schema name → [list of DbContext files that declare it]`. If any schema name appears in more than one DbContext, that is a BLOCKER.
 
 Flag as BLOCKER: `Schema "{schema}" is declared by both {ContextA} and {ContextB} — Respawn will silently delete both modules' data when resetting one`
 
-Also flag as BLOCKER any DbContext under `src/Modules/` that has no `HasDefaultSchema` call — the module is using the PostgreSQL `public` schema, which collides with every other schema-less module.
+Also flag as BLOCKER any DbContext under `backend/src/Modules/` that has no `HasDefaultSchema` call — the module is using the PostgreSQL `public` schema, which collides with every other schema-less module.
 
 ### Check G — InternalsVisibleTo completeness [WARNING]
 

@@ -92,8 +92,8 @@ When in doubt between the two, prefer EVENT — it is the default inter-module p
 ## Step 5 — Check existing contracts (do not overwrite)
 
 Before proposing any contract, use Glob to list all `.cs` files under:
-- `src/Shared/ThingsBooksy.Shared.Abstractions/Events/`
-- `src/Shared/ThingsBooksy.Shared.Abstractions/Queries/`
+- `backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/`
+- `backend/src/Shared/ThingsBooksy.Shared.Abstractions/Queries/`
 
 Read any files that share the same module name or a similar record name as a contract you intend to create. If a contract already exists and matches what you need, note it as "already exists — no action needed" and exclude it from the proposal. Never overwrite an existing file.
 
@@ -110,7 +110,7 @@ For each contract, use this exact format:
 TYPE: EVENT | QUERY
 PRODUCER: {ModuleName}
 CONSUMER: {ModuleName}
-FILE: src/Shared/ThingsBooksy.Shared.Abstractions/Events/{ModuleName}/{RecordName}.cs
+FILE: backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/{ModuleName}/{RecordName}.cs
       (for queries, two files: request + response)
 
 ```csharp
@@ -160,9 +160,9 @@ If the user requests changes to field names, types, or contract shape, update th
 After explicit user approval, write each contract file.
 
 **File locations:**
-- Event: `src/Shared/ThingsBooksy.Shared.Abstractions/Events/{ProducerModuleName}/{RecordName}.cs`
-- Query request: `src/Shared/ThingsBooksy.Shared.Abstractions/Queries/{ProducerModuleName}/{RequestRecord}.cs`
-- Query response: `src/Shared/ThingsBooksy.Shared.Abstractions/Queries/{ProducerModuleName}/{ResponseRecord}.cs`
+- Event: `backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/{ProducerModuleName}/{RecordName}.cs`
+- Query request: `backend/src/Shared/ThingsBooksy.Shared.Abstractions/Queries/{ProducerModuleName}/{RequestRecord}.cs`
+- Query response: `backend/src/Shared/ThingsBooksy.Shared.Abstractions/Queries/{ProducerModuleName}/{ResponseRecord}.cs`
 
 **Namespaces:**
 - Events: `ThingsBooksy.Shared.Abstractions.Events.{ModuleName}`
@@ -202,9 +202,9 @@ After writing all files, output a summary in this format:
 ## CONTRACT-DEFINER COMPLETE
 
 Written files:
-- src/Shared/ThingsBooksy.Shared.Abstractions/Events/Users/UserSignedUp.cs  [EVENT]
-- src/Shared/ThingsBooksy.Shared.Abstractions/Queries/Users/GetUser.cs  [QUERY request]
-- src/Shared/ThingsBooksy.Shared.Abstractions/Queries/Users/GetUserResponse.cs  [QUERY response]
+- backend/src/Shared/ThingsBooksy.Shared.Abstractions/Events/Users/UserSignedUp.cs  [EVENT]
+- backend/src/Shared/ThingsBooksy.Shared.Abstractions/Queries/Users/GetUser.cs  [QUERY request]
+- backend/src/Shared/ThingsBooksy.Shared.Abstractions/Queries/Users/GetUserResponse.cs  [QUERY response]
 
 Skipped (already existed):
 - (none)
@@ -221,7 +221,7 @@ All contracts are ready. module-writer agents can now be invoked in parallel per
 - All identifier fields are typed as `Guid`. Never use `int`, `long`, or `string` for entity IDs.
 - Do not add fields that are not derivable from spec/plan. Do not add "future-proofing" fields.
 - `Guid.NewGuid()` is forbidden in this codebase. Contracts carry existing IDs — they never generate new ones.
-- Do not place anything in `src/Shared/ThingsBooksy.Shared.Abstractions/` that is module-specific (internal DTOs, EF entities, handlers). Only shared communication contracts belong here.
+- Do not place anything in `backend/src/Shared/ThingsBooksy.Shared.Abstractions/` that is module-specific (internal DTOs, EF entities, handlers). Only shared communication contracts belong here.
 
 ---
 
