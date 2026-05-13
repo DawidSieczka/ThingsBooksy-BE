@@ -1,0 +1,12 @@
+<section class="confirmation" role="status" aria-live="polite">
+  <div class="confirmation__badge" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12.5 10 17l9-10" />
+    </svg>
+  </div>
+  <h1 class="confirmation__title">You're signed in</h1>
+  <p class="confirmation__email">Signed in as <strong>{{ email() }}</strong></p>
+  <button type="button" class="confirmation__btn" (click)="onSignOut()">
+    Sign out
+  </button>
+</section>

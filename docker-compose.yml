@@ -36,7 +36,15 @@ services:
     ports:
       - "4200:4200"
     volumes:
-      - ./frontend/src:/app/src
+      - ./frontend:/app
+      - /app/node_modules
+    command:
+      - "node_modules/.bin/ng"
+      - "serve"
+      - "--host"
+      - "0.0.0.0"
+      - "--proxy-config"
+      - "proxy.conf.docker.json"
     depends_on:
       - api
 

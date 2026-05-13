@@ -1,0 +1,41 @@
+<form class="sign-in-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+  <tb-text-field
+    label="Email"
+    icon="mail"
+    type="email"
+    placeholder="you@company.com"
+    autocomplete="email"
+    [control]="form.controls.email"
+    [errorMessages]="emailErrorMessages"
+  />
+
+  <div class="sign-in-form__password-row">
+    <tb-text-field
+      label="Password"
+      icon="lock"
+      type="password"
+      placeholder="Enter your password"
+      autocomplete="current-password"
+      [control]="form.controls.password"
+      [errorMessages]="passwordErrorMessages"
+    />
+    <a
+      href="#"
+      class="sign-in-form__forgot"
+      (click)="onForgotPassword($event)"
+    >Forgot password?</a>
+  </div>
+
+  <button
+    type="submit"
+    class="sign-in-form__submit"
+    [disabled]="isLoading()"
+  >
+    @if (isLoading()) {
+      <span class="sign-in-form__spinner" aria-hidden="true"></span>
+      <span>Signing in…</span>
+    } @else {
+      <span>Sign in</span>
+    }
+  </button>
+</form>

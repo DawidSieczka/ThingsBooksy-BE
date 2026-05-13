@@ -1,0 +1,11 @@
+@if (message()) {
+  <div
+    class="status-message"
+    [class.status-message--error]="tone() === 'error'"
+    [class.status-message--success]="tone() === 'success'"
+    [attr.role]="role()"
+    aria-live="polite"
+  >
+    {{ message() }}
+  </div>
+}
