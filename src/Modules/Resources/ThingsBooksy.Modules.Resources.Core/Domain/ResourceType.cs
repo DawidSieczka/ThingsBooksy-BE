@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceType;
+using ThingsBooksy.Modules.Resources.Core.Features.UpdateResourceType;
 
 namespace ThingsBooksy.Modules.Resources.Core.Domain;
 
@@ -13,25 +15,25 @@ internal class ResourceType
     public DateTime UpdatedAt { get; private set; }
     public DateTime? DeletedAt { get; private set; }
 
-    public ICollection<ResourcePropertyDefinition> PropertyDefinitions { get; private set; } = new List<ResourcePropertyDefinition>();
+    public bool IsDeleted => DeletedAt.HasValue;
 
     private ResourceType() { }
 
-    public static ResourceType Create(Guid id, Guid groupId, string name, string? description, DateTime now)
+    public static ResourceType Create(CreateResourceTypeCommand command, DateTime now)
         => new()
         {
-            Id = id,
-            GroupId = groupId,
-            Name = name,
-            Description = description,
+            Id = Guid.CreateVersion7(),
+            GroupId = command.GroupId,
+            Name = command.Name,
+            Description = command.Description,
             CreatedAt = now,
             UpdatedAt = now
         };
 
-    public void Update(string name, string? description, DateTime now)
+    public void Update(UpdateResourceTypeCommand command, DateTime now)
     {
-        Name = name;
-        Description = description;
+        Name = command.Name;
+        Description = command.Description;
         UpdatedAt = now;
     }
 
@@ -41,5 +43,5 @@ internal class ResourceType
         UpdatedAt = now;
     }
 
-    public bool IsDeleted => DeletedAt.HasValue;
+    public ICollection<ResourcePropertyDefinition> PropertyDefinitions { get; private set; } = new List<ResourcePropertyDefinition>();
 }

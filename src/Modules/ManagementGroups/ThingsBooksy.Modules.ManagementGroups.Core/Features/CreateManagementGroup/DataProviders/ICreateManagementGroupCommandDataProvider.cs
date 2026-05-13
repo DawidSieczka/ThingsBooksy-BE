@@ -1,0 +1,13 @@
+using System.Threading;
+using System.Threading.Tasks;
+using ThingsBooksy.Modules.ManagementGroups.Core.Domain;
+using ThingsBooksy.Shared.Abstractions.DataProviders;
+
+namespace ThingsBooksy.Modules.ManagementGroups.Core.Features.CreateManagementGroup.DataProviders;
+
+internal interface ICreateManagementGroupCommandDataProvider : IDataProvider
+{
+    Task<bool> NameExistsAsync(string name, CancellationToken ct);
+    Task AddAsync(ManagementGroup group, CancellationToken ct);
+    Task SaveChangesAsync(CancellationToken ct);
+}

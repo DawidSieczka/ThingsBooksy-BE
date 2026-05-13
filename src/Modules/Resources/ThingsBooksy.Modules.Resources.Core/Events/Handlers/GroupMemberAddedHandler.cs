@@ -27,12 +27,7 @@ internal sealed class GroupMemberAddedHandler : IEventHandler<GroupMemberAdded>
             return;
         }
 
-        var readModel = new GroupMemberReadModel
-        {
-            GroupId = @event.GroupId,
-            UserId = @event.UserId
-        };
-
+        var readModel = GroupMemberReadModel.Upsert(@event);
         await _dbContext.GroupMemberReadModels.AddAsync(readModel, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }

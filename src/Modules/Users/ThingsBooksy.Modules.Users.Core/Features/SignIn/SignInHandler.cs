@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ThingsBooksy.Modules.Users.Core.Exceptions;
+using ThingsBooksy.Modules.Users.Core.Features.SignIn.DataProviders;
 using ThingsBooksy.Modules.Users.Core.Services;
 using ThingsBooksy.Shared.Abstractions.Commands;
 using ThingsBooksy.Shared.Infrastructure.Auth.JWT;
@@ -15,20 +14,20 @@ internal sealed class SignInHandler : ICommandHandler<SignInCommand>
 {
     private static readonly EmailAddressAttribute EmailAddressAttribute = new();
 
-    private readonly ISignInRepository _repository;
+    private readonly ISignInCommandDataProvider _provider;
     private readonly IJsonWebTokenManager _jwtManager;
     private readonly IPasswordManager _passwordManager;
     private readonly ITokenStorage _tokenStorage;
     private readonly ILogger<SignInHandler> _logger;
 
     public SignInHandler(
-        ISignInRepository repository,
+        ISignInCommandDataProvider provider,
         IJsonWebTokenManager jwtManager,
         IPasswordManager passwordManager,
         ITokenStorage tokenStorage,
         ILogger<SignInHandler> logger)
     {
-        _repository = repository;
+        _provider = provider;
         _jwtManager = jwtManager;
         _passwordManager = passwordManager;
         _tokenStorage = tokenStorage;
@@ -43,7 +42,7 @@ internal sealed class SignInHandler : ICommandHandler<SignInCommand>
         if (string.IsNullOrWhiteSpace(command.Password))
             throw new UsersDomainException("Password cannot be empty.");
 
-        var user = await _repository.GetByEmailAsync(command.Email.ToLowerInvariant(), cancellationToken);
+        var user = await _provider.GetByEmailAsync(command.Email.ToLowerInvariant(), cancellationToken);
 
         // Always run password verification to prevent timing-based email enumeration.
         var storedHash = user?.Password ?? "$2a$11$dummy.hash.to.prevent.timing.attack.padding.x";

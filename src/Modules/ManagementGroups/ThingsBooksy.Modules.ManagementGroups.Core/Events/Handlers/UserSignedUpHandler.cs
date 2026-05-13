@@ -12,18 +12,11 @@ internal sealed class UserSignedUpHandler : IEventHandler<UserSignedUp>
     private readonly ManagementGroupsDbContext _dbContext;
 
     public UserSignedUpHandler(ManagementGroupsDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+        => _dbContext = dbContext;
 
     public async Task HandleAsync(UserSignedUp @event, CancellationToken cancellationToken = default)
     {
-        var userReadModel = new UserReadModel
-        {
-            Id = @event.UserId,
-            Email = @event.Email.ToLowerInvariant()
-        };
-
+        var userReadModel = UserReadModel.Upsert(@event);
         await _dbContext.UserReadModels.AddAsync(userReadModel, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }

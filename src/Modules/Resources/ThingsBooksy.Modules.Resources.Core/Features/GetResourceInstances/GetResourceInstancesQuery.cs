@@ -8,4 +8,4 @@ internal record GetResourceInstancesQuery(
     Guid? ResourceTypeId,
     Guid? GroupId,
     bool IncludeDeleted,
-    Guid RequesterId) : IQuery<IReadOnlyList<ResourceInstanceDto>>;
+    Guid RequesterId) : IQuery<IReadOnlyList<GetResourceInstancesQueryResult>>;

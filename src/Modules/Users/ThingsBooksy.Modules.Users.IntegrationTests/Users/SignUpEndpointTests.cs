@@ -16,7 +16,7 @@ public class SignUpEndpointTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task SignUp_WithValidData_Returns204()
+    public async Task SignUpUser_WithValidData_Returns204()
     {
         var response = await _users.SignUpAsync("signup_valid@test.com");
 
@@ -24,7 +24,7 @@ public class SignUpEndpointTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task SignUp_WithDuplicateEmail_Returns400()
+    public async Task SignUpUser_WithDuplicateEmail_Returns400()
     {
         await _users.SignUpAsync("signup_dup@test.com");
 
@@ -34,7 +34,7 @@ public class SignUpEndpointTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task SignUp_WithoutPassword_Returns400()
+    public async Task SignUpUser_WithoutPassword_Returns400()
     {
         var response = await _users.SignUpAsync("signup_nopass@test.com", "");
 

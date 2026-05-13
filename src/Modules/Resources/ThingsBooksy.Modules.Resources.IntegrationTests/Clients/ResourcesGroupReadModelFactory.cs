@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using ThingsBooksy.Modules.Resources.Core.DAL;
 using ThingsBooksy.Modules.Resources.Core.ReadModels;
+using ThingsBooksy.Shared.Abstractions.Events.ManagementGroups;
 using ThingsBooksy.Shared.IntegrationTests;
 
 namespace ThingsBooksy.Modules.Resources.IntegrationTests.Clients;
@@ -25,11 +26,8 @@ public sealed class ResourcesGroupReadModelFactory
 
     internal async Task<GroupReadModel> CreateGroupReadModelAsync(Guid ownerId)
     {
-        var readModel = new GroupReadModel
-        {
-            Id = Guid.CreateVersion7(),
-            OwnerId = ownerId
-        };
+        var groupId = Guid.CreateVersion7();
+        var readModel = GroupReadModel.Upsert(new GroupCreated(groupId, ownerId));
 
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
@@ -41,11 +39,7 @@ public sealed class ResourcesGroupReadModelFactory
 
     internal async Task AddGroupMemberAsync(Guid groupId, Guid userId)
     {
-        var member = new GroupMemberReadModel
-        {
-            GroupId = groupId,
-            UserId = userId
-        };
+        var member = GroupMemberReadModel.Upsert(new GroupMemberAdded(groupId, userId));
 
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();

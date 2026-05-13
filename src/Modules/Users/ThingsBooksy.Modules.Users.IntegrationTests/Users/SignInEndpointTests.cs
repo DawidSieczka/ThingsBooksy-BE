@@ -16,7 +16,7 @@ public class SignInEndpointTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task SignIn_WithValidCredentials_Returns200WithToken()
+    public async Task SignInUser_WithValidCredentials_Returns200WithToken()
     {
         await _users.SignUpAsync("signin_valid@test.com");
 
@@ -28,7 +28,7 @@ public class SignInEndpointTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task SignIn_WithInvalidPassword_Returns400()
+    public async Task SignInUser_WithInvalidPassword_Returns400()
     {
         await _users.SignUpAsync("signin_badpass@test.com");
 
@@ -38,7 +38,7 @@ public class SignInEndpointTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task SignIn_WithNonExistentEmail_Returns400()
+    public async Task SignInUser_WithNonExistentEmail_Returns400()
     {
         var response = await _users.SignInAsync("does_not_exist@test.com");
 

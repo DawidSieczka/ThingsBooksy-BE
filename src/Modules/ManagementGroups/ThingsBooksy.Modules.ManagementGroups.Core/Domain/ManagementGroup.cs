@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using ThingsBooksy.Modules.ManagementGroups.Core.Features.CreateManagementGroup;
+using ThingsBooksy.Modules.ManagementGroups.Core.Features.UpdateManagementGroup;
 
 namespace ThingsBooksy.Modules.ManagementGroups.Core.Domain;
 
@@ -13,25 +15,25 @@ internal class ManagementGroup
     public DateTime UpdatedAt { get; private set; }
     public DateTime? DeletedAt { get; private set; }
 
-    public ICollection<GroupMember> Members { get; private set; } = new List<GroupMember>();
+    public bool IsDeleted => DeletedAt.HasValue;
 
     private ManagementGroup() { }
 
-    public static ManagementGroup Create(Guid id, string name, string? description, Guid ownerId, DateTime now)
+    public static ManagementGroup Create(CreateManagementGroupCommand command, DateTime now)
         => new()
         {
-            Id = id,
-            Name = name,
-            Description = description,
-            OwnerId = ownerId,
+            Id = Guid.CreateVersion7(),
+            Name = command.Name,
+            Description = command.Description,
+            OwnerId = command.OwnerId,
             CreatedAt = now,
             UpdatedAt = now
         };
 
-    public void Update(string name, string? description, DateTime now)
+    public void Update(UpdateManagementGroupCommand command, DateTime now)
     {
-        Name = name;
-        Description = description;
+        Name = command.Name;
+        Description = command.Description;
         UpdatedAt = now;
     }
 
@@ -47,5 +49,5 @@ internal class ManagementGroup
         UpdatedAt = now;
     }
 
-    public bool IsDeleted => DeletedAt.HasValue;
+    public ICollection<GroupMember> Members { get; private set; } = new List<GroupMember>();
 }
