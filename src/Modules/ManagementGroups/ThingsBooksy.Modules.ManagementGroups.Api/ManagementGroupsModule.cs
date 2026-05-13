@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ThingsBooksy.Modules.ManagementGroups.Api.Requests;
 using ThingsBooksy.Modules.ManagementGroups.Core;
 using ThingsBooksy.Modules.ManagementGroups.Core.Events.Handlers;
 using ThingsBooksy.Modules.ManagementGroups.Core.Features.AddGroupMember;
@@ -29,6 +30,7 @@ internal sealed class ManagementGroupsModule : IModule
 
     public void Register(IServiceCollection services, IConfiguration configuration)
     {
+        services.AddEndpointsApiExplorer();
         services.AddManagementGroupsCore(configuration);
         services.AddScoped<IEventHandler<UserSignedUp>, UserSignedUpHandler>();
     }
@@ -40,9 +42,10 @@ internal sealed class ManagementGroupsModule : IModule
         endpoints.MapPost("/management-groups", async (CreateManagementGroupRequest request, IDispatcher dispatcher, HttpContext context) =>
         {
             var userId = GetUserId(context);
-            var command = new CreateManagementGroupCommand(Guid.CreateVersion7(), request.Name, request.Description, userId);
+            var command = new CreateManagementGroupCommand(request.Name, request.Description, userId);
             await dispatcher.SendAsync(command);
-            return Results.Created($"/management-groups/{command.GroupId}", new { id = command.GroupId });
+            var groupId = (Guid)context.Items["created_group_id"]!;
+            return Results.Created($"/management-groups/{groupId}", new { id = groupId });
         }).RequireAuthorization().WithTags("ManagementGroups").WithName("Create management group");
 
         endpoints.MapGet("/management-groups", async (IDispatcher dispatcher, HttpContext context) =>
@@ -100,7 +103,3 @@ internal sealed class ManagementGroupsModule : IModule
             ? Guid.Empty
             : Guid.Parse(context.User.Identity.Name);
 }
-
-public record CreateManagementGroupRequest(string Name, string? Description);
-public record UpdateManagementGroupRequest(string Name, string? Description);
-public record AddGroupMemberRequest(string Email);

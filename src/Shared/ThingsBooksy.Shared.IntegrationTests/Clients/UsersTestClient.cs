@@ -19,10 +19,10 @@ public class UsersTestClient
     }
 
     public Task<HttpResponseMessage> SignUpAsync(string email, string password = "Test1234!")
-        => _factory.CreateClient().PostAsJsonAsync("/sign-up", new { Email = email, Password = password });
+        => _factory.CreateClient().PostAsJsonAsync("/users/sign-up", new { Email = email, Password = password });
 
     public Task<HttpResponseMessage> SignInAsync(string email, string password = "Test1234!")
-        => _factory.CreateClient().PostAsJsonAsync("/sign-in", new { Email = email, Password = password });
+        => _factory.CreateClient().PostAsJsonAsync("/users/sign-in", new { Email = email, Password = password });
 
     public async Task<AuthenticatedUser> RegisterAndLoginAsync(string email, string password = "Test1234!")
     {

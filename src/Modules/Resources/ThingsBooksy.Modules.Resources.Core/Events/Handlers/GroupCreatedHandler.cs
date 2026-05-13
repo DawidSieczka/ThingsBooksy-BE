@@ -22,17 +22,15 @@ internal sealed class GroupCreatedHandler : IEventHandler<GroupCreated>
         var existing = await _dbContext.GroupReadModels
             .FirstOrDefaultAsync(x => x.Id == @event.GroupId, cancellationToken);
 
+        var readModel = GroupReadModel.Upsert(@event);
+
         if (existing is not null)
         {
-            existing.OwnerId = @event.OwnerId;
+            _dbContext.Entry(existing).State = EntityState.Detached;
+            _dbContext.GroupReadModels.Update(readModel);
         }
         else
         {
-            var readModel = new GroupReadModel
-            {
-                Id = @event.GroupId,
-                OwnerId = @event.OwnerId
-            };
             await _dbContext.GroupReadModels.AddAsync(readModel, cancellationToken);
         }
 

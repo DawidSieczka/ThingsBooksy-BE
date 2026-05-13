@@ -32,7 +32,7 @@ public class GetManagementGroupsTests : IntegrationTestBase
         var response = await ownerGroups.GetGroupsAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var groups = await response.Content.ReadFromJsonAsync<List<ManagementGroupDto>>();
+        var groups = await response.Content.ReadFromJsonAsync<List<GetManagementGroupsQueryResult>>();
         Assert.NotNull(groups);
         Assert.Equal(2, groups.Count);
         Assert.All(groups, g => Assert.Equal(owner.UserId, g.OwnerId));
@@ -49,7 +49,7 @@ public class GetManagementGroupsTests : IntegrationTestBase
 
         var response = await groups.GetGroupsAsync();
 
-        var result = await response.Content.ReadFromJsonAsync<List<ManagementGroupDto>>();
+        var result = await response.Content.ReadFromJsonAsync<List<GetManagementGroupsQueryResult>>();
         Assert.NotNull(result);
         Assert.Single(result);
         Assert.Equal("Active Group", result[0].Name);
@@ -67,7 +67,7 @@ public class GetManagementGroupsTests : IntegrationTestBase
 
         var response = await memberGroups.GetGroupsAsync();
 
-        var result = await response.Content.ReadFromJsonAsync<List<ManagementGroupDto>>();
+        var result = await response.Content.ReadFromJsonAsync<List<GetManagementGroupsQueryResult>>();
         Assert.NotNull(result);
         Assert.Single(result);
         Assert.Equal("Shared Group", result[0].Name);

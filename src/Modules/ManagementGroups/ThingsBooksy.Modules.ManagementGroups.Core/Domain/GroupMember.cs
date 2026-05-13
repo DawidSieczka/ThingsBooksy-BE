@@ -1,4 +1,5 @@
 using System;
+using ThingsBooksy.Modules.ManagementGroups.Core.Features.AddGroupMember;
 
 namespace ThingsBooksy.Modules.ManagementGroups.Core.Domain;
 
@@ -8,10 +9,10 @@ internal class GroupMember
     public Guid UserId { get; private set; }
     public DateTime JoinedAt { get; private set; }
 
-    public ManagementGroup Group { get; private set; } = null!;
-
     private GroupMember() { }
 
-    public static GroupMember Create(Guid groupId, Guid userId, DateTime now)
-        => new() { GroupId = groupId, UserId = userId, JoinedAt = now };
+    public static GroupMember Create(AddGroupMemberCommand command, Guid userId, DateTime now)
+        => new() { GroupId = command.GroupId, UserId = userId, JoinedAt = now };
+
+    public ManagementGroup Group { get; private set; } = null!;
 }

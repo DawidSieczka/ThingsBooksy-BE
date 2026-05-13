@@ -8,7 +8,6 @@ namespace ThingsBooksy.Modules.Resources.Core.Features.CreateResourceType;
 internal record PropertyDefinitionInput(string Name, PropertyDataType DataType, bool IsRequired);
 
 internal record CreateResourceTypeCommand(
-    Guid TypeId,
     Guid GroupId,
     Guid CallerId,
     string Name,

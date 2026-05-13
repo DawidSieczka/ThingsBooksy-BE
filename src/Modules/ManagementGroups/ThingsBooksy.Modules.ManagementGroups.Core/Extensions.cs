@@ -13,6 +13,7 @@ using ThingsBooksy.Modules.ManagementGroups.Core.Features.RestoreManagementGroup
 using ThingsBooksy.Modules.ManagementGroups.Core.Features.UpdateManagementGroup;
 using ThingsBooksy.Shared.Abstractions.Commands;
 using ThingsBooksy.Shared.Abstractions.Queries;
+using ThingsBooksy.Shared.Infrastructure.DataProviders;
 using ThingsBooksy.Shared.Infrastructure.Messaging.Outbox;
 using ThingsBooksy.Shared.Infrastructure.Postgres;
 
@@ -28,14 +29,15 @@ internal static class Extensions
     public static IServiceCollection AddManagementGroupsCore(this IServiceCollection services, IConfiguration configuration)
     {
         return services
-            .AddScoped<ICommandHandler<CreateManagementGroupCommand>, CreateManagementGroupHandler>()
-            .AddScoped<ICommandHandler<UpdateManagementGroupCommand>, UpdateManagementGroupHandler>()
-            .AddScoped<ICommandHandler<DeleteManagementGroupCommand>, DeleteManagementGroupHandler>()
-            .AddScoped<ICommandHandler<RestoreManagementGroupCommand>, RestoreManagementGroupHandler>()
-            .AddScoped<ICommandHandler<AddGroupMemberCommand>, AddGroupMemberHandler>()
-            .AddScoped<ICommandHandler<RemoveGroupMemberCommand>, RemoveGroupMemberHandler>()
-            .AddScoped<IQueryHandler<GetManagementGroupsQuery, IEnumerable<ManagementGroupDto>>, GetManagementGroupsHandler>()
-            .AddScoped<IQueryHandler<GetManagementGroupQuery, ManagementGroupDetailDto?>, GetManagementGroupHandler>()
+            .AddScoped<ICommandHandler<CreateManagementGroupCommand>, CreateManagementGroupCommandHandler>()
+            .AddScoped<ICommandHandler<UpdateManagementGroupCommand>, UpdateManagementGroupCommandHandler>()
+            .AddScoped<ICommandHandler<DeleteManagementGroupCommand>, DeleteManagementGroupCommandHandler>()
+            .AddScoped<ICommandHandler<RestoreManagementGroupCommand>, RestoreManagementGroupCommandHandler>()
+            .AddScoped<ICommandHandler<AddGroupMemberCommand>, AddGroupMemberCommandHandler>()
+            .AddScoped<ICommandHandler<RemoveGroupMemberCommand>, RemoveGroupMemberCommandHandler>()
+            .AddScoped<IQueryHandler<GetManagementGroupsQuery, IEnumerable<GetManagementGroupsQueryResult>>, GetManagementGroupsQueryHandler>()
+            .AddScoped<IQueryHandler<GetManagementGroupQuery, GetManagementGroupQueryResult?>, GetManagementGroupQueryHandler>()
+            .AddDataProviders([typeof(Extensions).Assembly])
             .AddPostgres<ManagementGroupsDbContext>(configuration, "ThingsBooksy.Modules.ManagementGroups.Migrations")
             .AddOutbox<ManagementGroupsDbContext>(configuration)
             .AddUnitOfWork<ManagementGroupsUnitOfWork>();
