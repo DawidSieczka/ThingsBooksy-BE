@@ -29,7 +29,7 @@ public class GetManagementGroupTests : IntegrationTestBase
         var response = await groups.GetGroupAsync(groupId);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var detail = await response.Content.ReadFromJsonAsync<ManagementGroupDetailDto>();
+        var detail = await response.Content.ReadFromJsonAsync<GetManagementGroupQueryResult>();
         Assert.NotNull(detail);
         Assert.Equal("Detailed Group", detail.Name);
         Assert.Single(detail.Members);

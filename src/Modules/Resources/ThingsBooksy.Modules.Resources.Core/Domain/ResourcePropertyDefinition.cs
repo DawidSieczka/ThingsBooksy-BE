@@ -1,4 +1,6 @@
 using System;
+using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceType;
+using ThingsBooksy.Modules.Resources.Core.Features.UpdateResourceType;
 
 namespace ThingsBooksy.Modules.Resources.Core.Domain;
 
@@ -12,20 +14,20 @@ internal class ResourcePropertyDefinition
 
     private ResourcePropertyDefinition() { }
 
-    public static ResourcePropertyDefinition Create(Guid id, Guid resourceTypeId, string name, PropertyDataType dataType, bool isRequired)
+    public static ResourcePropertyDefinition Create(PropertyDefinitionInput input, Guid resourceTypeId)
         => new()
         {
-            Id = id,
+            Id = Guid.CreateVersion7(),
             ResourceTypeId = resourceTypeId,
-            Name = name,
-            DataType = dataType,
-            IsRequired = isRequired
+            Name = input.Name,
+            DataType = input.DataType,
+            IsRequired = input.IsRequired
         };
 
-    public void Update(string name, PropertyDataType dataType, bool isRequired)
+    public void Update(PropertyDefinitionUpdateInput input)
     {
-        Name = name;
-        DataType = dataType;
-        IsRequired = isRequired;
+        Name = input.Name;
+        DataType = input.DataType;
+        IsRequired = input.IsRequired;
     }
 }

@@ -6,7 +6,10 @@ using ThingsBooksy.Modules.Users.Core.Features.GetUser;
 using ThingsBooksy.Modules.Users.Core.Features.SignIn;
 using ThingsBooksy.Modules.Users.Core.Features.SignUp;
 using ThingsBooksy.Modules.Users.Core.Services;
+using ThingsBooksy.Shared.Abstractions.Commands;
+using ThingsBooksy.Shared.Abstractions.Queries;
 using ThingsBooksy.Shared.Infrastructure;
+using ThingsBooksy.Shared.Infrastructure.DataProviders;
 using ThingsBooksy.Shared.Infrastructure.Messaging.Outbox;
 using ThingsBooksy.Shared.Infrastructure.Postgres;
 
@@ -26,10 +29,13 @@ internal static class Extensions
 
         return services
             .AddSingleton<ITokenStorage, HttpContextTokenStorage>()
-            // Per-feature repositories
-            .AddScoped<ISignUpRepository, SignUpRepository>()
-            .AddScoped<ISignInRepository, SignInRepository>()
-            .AddScoped<IGetUserRepository, GetUserRepository>()
+            // Command handlers
+            .AddScoped<ICommandHandler<SignUpCommand>, SignUpHandler>()
+            .AddScoped<ICommandHandler<SignInCommand>, SignInHandler>()
+            // Query handlers
+            .AddScoped<IQueryHandler<GetUserQuery, GetUserQueryResult?>, GetUserQueryHandler>()
+            // Data providers
+            .AddDataProviders([typeof(Extensions).Assembly])
             // Infrastructure
             .AddPostgres<UsersDbContext>(configuration, "ThingsBooksy.Modules.Users.Migrations")
             .AddOutbox<UsersDbContext>(configuration)

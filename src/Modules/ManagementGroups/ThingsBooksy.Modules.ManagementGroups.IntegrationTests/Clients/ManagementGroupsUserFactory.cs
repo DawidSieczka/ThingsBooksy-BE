@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ThingsBooksy.Modules.ManagementGroups.Core.DAL;
 using ThingsBooksy.Modules.ManagementGroups.Core.ReadModels;
+using ThingsBooksy.Shared.Abstractions.Events.Users;
 using ThingsBooksy.Shared.Infrastructure.Auth;
 using ThingsBooksy.Shared.IntegrationTests;
 using ThingsBooksy.Shared.IntegrationTests.Clients;
@@ -36,7 +37,7 @@ public sealed class ManagementGroupsUserFactory
         using var scope = _factory.Services.CreateScope();
 
         var db = scope.ServiceProvider.GetRequiredService<ManagementGroupsDbContext>();
-        db.UserReadModels.Add(new UserReadModel { Id = userId, Email = email });
+        db.UserReadModels.Add(UserReadModel.Upsert(new UserSignedUp(userId, email)));
         await db.SaveChangesAsync();
 
         var authOptions = scope.ServiceProvider.GetRequiredService<IOptions<AuthOptions>>().Value;

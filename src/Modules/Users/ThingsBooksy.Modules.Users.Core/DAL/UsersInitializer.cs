@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -25,8 +24,8 @@ internal sealed class UsersInitializer : IInitializer
         if (await _dbContext.Roles.AnyAsync())
             return;
 
-        await _dbContext.Roles.AddAsync(new Role { Name = Role.Admin, Permissions = _permissions });
-        await _dbContext.Roles.AddAsync(new Role { Name = Role.User, Permissions = new List<string>() });
+        await _dbContext.Roles.AddAsync(Role.Create(Role.Admin, _permissions));
+        await _dbContext.Roles.AddAsync(Role.Create(Role.User, []));
         await _dbContext.SaveChangesAsync();
         _logger.LogInformation("Initialized Users roles.");
     }

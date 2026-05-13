@@ -24,6 +24,9 @@ public class InMemoryDispatcher : IDispatcher
     public Task SendAsync<T>(T command, CancellationToken cancellationToken = default) where T : class, ICommand
         => _commandDispatcher.SendAsync(command, cancellationToken);
 
+    public Task<TResult> SendAsync<T, TResult>(T command, CancellationToken cancellationToken = default) where T : class, ICommand
+        => _commandDispatcher.SendAsync<T, TResult>(command, cancellationToken);
+
     public Task PublishAsync<T>(T @event, CancellationToken cancellationToken = default) where T : class, IEvent
         => _eventDispatcher.PublishAsync(@event, cancellationToken);
 

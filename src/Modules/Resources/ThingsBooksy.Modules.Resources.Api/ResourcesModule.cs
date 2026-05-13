@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ThingsBooksy.Modules.Resources.Api.Requests;
 using ThingsBooksy.Modules.Resources.Core;
 using ThingsBooksy.Modules.Resources.Core.Events.Handlers;
-using ThingsBooksy.Modules.Resources.Core.Features;
 using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceInstance;
 using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceType;
 using ThingsBooksy.Modules.Resources.Core.Features.DeleteResourceInstance;
@@ -33,6 +33,7 @@ internal sealed class ResourcesModule : IModule
 
     public void Register(IServiceCollection services, IConfiguration configuration)
     {
+        services.AddEndpointsApiExplorer();
         services.AddResourcesCore(configuration);
         services.AddScoped<IEventHandler<GroupCreated>, GroupCreatedHandler>();
         services.AddScoped<IEventHandler<GroupDeleted>, GroupDeletedHandler>();
@@ -50,9 +51,9 @@ internal sealed class ResourcesModule : IModule
             var definitions = (request.PropertyDefinitions ?? [])
                 .Select(d => new PropertyDefinitionInput(d.Name, d.DataType, d.IsRequired))
                 .ToList();
-            var command = new CreateResourceTypeCommand(Guid.CreateVersion7(), request.GroupId, callerId, request.Name, request.Description, definitions);
-            await dispatcher.SendAsync(command);
-            return Results.Created($"/resources/types/{command.TypeId}", new { id = command.TypeId });
+            var command = new CreateResourceTypeCommand(request.GroupId, callerId, request.Name, request.Description, definitions);
+            var createdId = await dispatcher.SendAsync<CreateResourceTypeCommand, Guid>(command);
+            return Results.Created($"/resources/types/{createdId}", new { id = createdId });
         }).RequireAuthorization().WithTags("Resources").WithName("Create resource type");
 
         endpoints.MapPut("/resources/types/{id:guid}", async (Guid id, UpdateResourceTypeRequest request, IDispatcher dispatcher, HttpContext context) =>
@@ -77,13 +78,12 @@ internal sealed class ResourcesModule : IModule
         endpoints.MapPost("/resources/instances", async (CreateResourceInstanceRequest request, IDispatcher dispatcher, HttpContext context) =>
         {
             var callerId = GetUserId(context);
-            var instanceId = Guid.CreateVersion7();
             var propertyValues = (request.PropertyValues ?? [])
                 .Select(pv => new PropertyValueInput(pv.PropertyDefinitionId, pv.Value))
                 .ToList();
-            var command = new CreateResourceInstanceCommand(instanceId, request.ResourceTypeId, callerId, request.Name, request.Description, propertyValues);
-            await dispatcher.SendAsync(command);
-            return Results.Created($"/resources/instances/{instanceId}", new { id = instanceId });
+            var command = new CreateResourceInstanceCommand(request.ResourceTypeId, callerId, request.Name, request.Description, propertyValues);
+            var createdId = await dispatcher.SendAsync<CreateResourceInstanceCommand, Guid>(command);
+            return Results.Created($"/resources/instances/{createdId}", new { id = createdId });
         }).RequireAuthorization().WithTags("Resources").WithName("Create resource instance");
 
         endpoints.MapGet("/resources/types/{id:guid}", async (Guid id, IDispatcher dispatcher, HttpContext context) =>
