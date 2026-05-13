@@ -483,3 +483,9 @@ $RECYCLE.BIN/
 
 # Claude Code local settings (machine-specific paths and permissions)
 .claude/settings.local.json
+
+# Node / Angular (frontend)
+frontend/node_modules/
+frontend/.angular/
+frontend/dist/
+frontend/.env

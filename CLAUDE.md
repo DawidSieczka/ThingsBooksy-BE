@@ -3,24 +3,24 @@
 ## Commands
 
 ### Build & run
-- Build solution: `dotnet build`
-- Run application: `dotnet run --project src\Bootstrapper\ThingsBooksy.Bootstrapper`
+- Build solution: `dotnet build backend/ThingsBooksy.slnx`
+- Run application: `dotnet run --project backend/src/Bootstrapper/ThingsBooksy.Bootstrapper`
 - Docker (local, via WSL): `wsl docker compose up --build`
 
 ### Test
-- Run all tests: `dotnet test`
-- Run single test: `dotnet test <path-to-test-csproj> --filter "FullyQualifiedName~Namespace.Class.Method"`
+- Run all tests: `dotnet test backend/ThingsBooksy.slnx`
+- Run single test: `dotnet test backend/<path-to-test-csproj> --filter "FullyQualifiedName~Namespace.Class.Method"`
 - Prefer targeting a specific project over the full solution for faster feedback
 - Integration tests: use `/integration-tests` command
 
 ### Format
-- Format: `dotnet format`
-- Verify only (CI): `dotnet format --verify-no-changes`
-- Run `dotnet format` before suggesting any commit
+- Format: `dotnet format backend/ThingsBooksy.slnx`
+- Verify only (CI): `dotnet format backend/ThingsBooksy.slnx --verify-no-changes`
+- Run `dotnet format backend/ThingsBooksy.slnx` before suggesting any commit
 
 ### EF Core migrations (per module)
-- Add: `dotnet ef migrations add {Name} --project src\Modules\{Module}\{Module}.Migrations --startup-project src\Bootstrapper\ThingsBooksy.Bootstrapper`
-- Apply: `dotnet ef database update --project src\Modules\{Module}\{Module}.Migrations --startup-project src\Bootstrapper\ThingsBooksy.Bootstrapper`
+- Add: `dotnet ef migrations add {Name} --project backend/src/Modules/{Module}/{Module}.Migrations --startup-project backend/src/Bootstrapper/ThingsBooksy.Bootstrapper`
+- Apply: `dotnet ef database update --project backend/src/Modules/{Module}/{Module}.Migrations --startup-project backend/src/Bootstrapper/ThingsBooksy.Bootstrapper`
 - Always run `database update` after adding a migration
 
 ---
@@ -29,13 +29,13 @@
 
 Modular Monolith — one deployable artifact, isolated independent modules.
 
-- Each module: `src/Modules/{ModuleName}/` with exactly two source projects:
+- Each module: `backend/src/Modules/{ModuleName}/` with exactly two source projects:
   - `{Module}.Api` — HTTP layer (Minimal API), endpoints, DTOs (records), module JSON config
   - `{Module}.Core` — domain entities, EF DbContext, command/query handlers, domain events, value objects
   - `{Module}.Migrations` — EF migrations (separate project, optional)
-- `src/Shared/ThingsBooksy.Shared.Abstractions` — shared contracts only (events, interfaces); no module-specific types here
+- `backend/src/Shared/ThingsBooksy.Shared.Abstractions` — shared contracts only (events, interfaces); no module-specific types here
   - Events are organized by producing module: `Events/{ModuleName}/SomeEvent.cs` → namespace `ThingsBooksy.Shared.Abstractions.Events.{ModuleName}`
-- `src/Bootstrapper/ThingsBooksy.Bootstrapper` — composes and starts all modules
+- `backend/src/Bootstrapper/ThingsBooksy.Bootstrapper` — composes and starts all modules
 
 ---
 
@@ -191,7 +191,7 @@ After `integration-test-writer` reports `INTEGRATION-TEST-WRITER COMPLETE` for *
 4. Re-invoke `architecture-guard` with the same Wave module list.
 5. If `architecture-guard` still reports the same BLOCKER after 2 repair iterations, stop and surface the issue to the user — do not loop further.
 
-**Manual prerequisite for new modules:** Before invoking `integration-test-writer` on a module that did not previously have integration tests, manually add the module's EF Core schema name to `SchemasToInclude` in `ThingsBooksyWebAppFactory.cs` (in `src/Shared/ThingsBooksy.Shared.IntegrationTests/`). Failing to do so causes silent test pollution — Respawn will not clean the new module's data between tests.
+**Manual prerequisite for new modules:** Before invoking `integration-test-writer` on a module that did not previously have integration tests, manually add the module's EF Core schema name to `SchemasToInclude` in `ThingsBooksyWebAppFactory.cs` (in `backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/`). Failing to do so causes silent test pollution — Respawn will not clean the new module's data between tests.
 
 ### Naming convention
 
@@ -220,8 +220,8 @@ All agents live in `.claude/agents/` (root only — nested directories are not s
 
 - `.specify/memory/constitution.md` — authoritative architecture rules (full version of what is summarized here; read it before proposing cross-module changes or new modules)
 - `.claude/conventions/` — coding conventions (DataProvider pattern, naming, command construction, endpoint structure, test patterns); read before writing or reviewing code
-- `src/Bootstrapper/ThingsBooksy.Bootstrapper` — startup composition and module registration
-- `src/Shared/ThingsBooksy.Shared.Abstractions` — shared event/message contracts
+- `backend/src/Bootstrapper/ThingsBooksy.Bootstrapper` — startup composition and module registration
+- `backend/src/Shared/ThingsBooksy.Shared.Abstractions` — shared event/message contracts
 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,

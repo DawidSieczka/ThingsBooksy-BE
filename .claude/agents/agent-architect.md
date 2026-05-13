@@ -55,7 +55,7 @@ State concerns clearly and directly. Do not soften or bury them. After stating a
 
 ## Agent naming convention
 
-Claude Code discovers agents **only** from `{project-root}/.claude/agents/` — nested directories (e.g. `src/Modules/Users/.claude/agents/`) are not supported.
+Claude Code discovers agents **only** from `{project-root}/.claude/agents/` — nested directories (e.g. `backend/src/Modules/Users/.claude/agents/`) are not supported.
 
 For module-specific agents, use a naming prefix:
 - `{module}-{purpose}.md` — e.g. `users-code-reviewer.md`, `management-groups-code-reviewer.md`

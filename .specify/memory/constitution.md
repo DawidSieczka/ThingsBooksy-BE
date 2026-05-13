@@ -4,9 +4,9 @@
 
 ### I. Modular Monolith Architecture (NON-NEGOTIABLE)
 The application is built as a **Modular Monolith**: a single deployable artifact composed of independent, self-contained modules.
-- Each module lives in `src/Modules/{ModuleName}/` and contains exactly two source projects: `{Name}.Api` and `{Name}.Core`
+- Each module lives in `backend/src/Modules/{ModuleName}/` and contains exactly two source projects: `{Name}.Api` and `{Name}.Core`
 - Modules **must never** directly reference each other — communication happens exclusively through `IMessageBroker` (events) or `IModuleClient` (queries)
-- Shared infrastructure belongs exclusively to `src/Shared/` — no cross-module dependencies
+- Shared infrastructure belongs exclusively to `backend/src/Shared/` — no cross-module dependencies
 - Each module exposes its public contract via `IModule` and registers endpoints in `Expose(IEndpointRouteBuilder)`
 
 ### II. Simplified DDD (NON-NEGOTIABLE)
@@ -28,7 +28,7 @@ Modules communicate through domain events published via `IMessageBroker`.
 - Publishing: `await _messageBroker.PublishAsync(new SomethingHappenedEvent(...))`
 - Subscribing: implement `IEventHandler<TEvent>` and register it in the module's `Register(IServiceCollection)`
 - If a module needs data from another module, it subscribes to events and stores a **read model** (local copy) — it never queries another module's database
-- Event contracts live in `src/Shared/ThingsBooksy.Shared.Abstractions/` — no module-specific types in event bodies
+- Event contracts live in `backend/src/Shared/ThingsBooksy.Shared.Abstractions/` — no module-specific types in event bodies
 
 ### V. Test-First Approach
 New features and bug fixes require tests before implementation.
@@ -42,7 +42,7 @@ Each module has its own **EF Core DbContext** with schema isolation.
 - Schema naming: lowercase snake_case of the module name — `"bookings"`, `"management_groups"`, `"users"`, etc.
 - Every `DbContext` must call `modelBuilder.HasDefaultSchema(...)` — using `"public"` or omitting the call is forbidden (causes cross-module table collisions and silent Respawn data loss in tests)
 - Migrations live in a dedicated `{ModuleName}.Migrations` project
-- Migration command: `dotnet ef migrations add {Name} --project src/Modules/{M}/{M}.Migrations --startup-project src/Bootstrapper/ThingsBooksy.Bootstrapper`
+- Migration command: `dotnet ef migrations add {Name} --project backend/src/Modules/{M}/{M}.Migrations --startup-project backend/src/Bootstrapper/ThingsBooksy.Bootstrapper`
 - Always run `dotnet ef database update` after adding a migration
 
 ### VII. Simplicity and YAGNI

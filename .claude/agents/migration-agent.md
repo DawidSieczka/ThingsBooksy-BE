@@ -29,7 +29,7 @@ If no file is found, stop immediately and output:
 
 ```
 BLOCKED — Migrations project not found for module {ModuleName}.
-Expected: src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.Migrations/ThingsBooksy.Modules.{ModuleName}.Migrations.csproj
+Expected: backend/src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.Migrations/ThingsBooksy.Modules.{ModuleName}.Migrations.csproj
 Create the project manually before invoking this agent.
 ```
 
@@ -60,7 +60,7 @@ Good examples:
 EF Core tooling requires the startup project to be compiled before it can scaffold a migration. Run:
 
 ```powershell
-dotnet build src\Bootstrapper\ThingsBooksy.Bootstrapper\ThingsBooksy.Bootstrapper.csproj
+dotnet build backend\\src\\Bootstrapper\\ThingsBooksy.Bootstrapper\ThingsBooksy.Bootstrapper.csproj
 ```
 
 If the build fails, stop immediately and output the full build error. Do not proceed to Step 4.
@@ -73,8 +73,8 @@ Run the following command, substituting `{ModuleName}` and `{MigrationName}` wit
 
 ```powershell
 dotnet ef migrations add {MigrationName} `
-  --project src\Modules\{ModuleName}\ThingsBooksy.Modules.{ModuleName}.Migrations\ThingsBooksy.Modules.{ModuleName}.Migrations.csproj `
-  --startup-project src\Bootstrapper\ThingsBooksy.Bootstrapper\ThingsBooksy.Bootstrapper.csproj
+  --project backend\\src\\Modules\\{ModuleName}\ThingsBooksy.Modules.{ModuleName}.Migrations\ThingsBooksy.Modules.{ModuleName}.Migrations.csproj `
+  --startup-project backend\\src\\Bootstrapper\\ThingsBooksy.Bootstrapper\ThingsBooksy.Bootstrapper.csproj
 ```
 
 If the command output contains `No changes detected`, stop immediately and output:
@@ -111,12 +111,12 @@ Always end your response with exactly this block. No text after it. Preserve fie
 MIGRATION-AGENT COMPLETE
 Module: {ModuleName}
 Migration name: {MigrationName}
-Migration file: src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.Migrations/Migrations/{Timestamp}_{MigrationName}.cs
+Migration file: backend/src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.Migrations/Migrations/{Timestamp}_{MigrationName}.cs
 
 Schema summary:
 - {line per change extracted in Step 5}
 
-Next step (manual): dotnet ef database update --project src\Modules\{ModuleName}\ThingsBooksy.Modules.{ModuleName}.Migrations --startup-project src\Bootstrapper\ThingsBooksy.Bootstrapper
+Next step (manual): dotnet ef database update --project backend\\src\\Modules\\{ModuleName}\ThingsBooksy.Modules.{ModuleName}.Migrations --startup-project backend\\src\\Bootstrapper\\ThingsBooksy.Bootstrapper
 ```
 
 ---

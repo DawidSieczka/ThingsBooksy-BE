@@ -25,7 +25,7 @@ Use Glob to find the `.csproj` file matching `**/*{ModuleName}*IntegrationTests*
 
 ```
 BLOCKED — No IntegrationTests project found for module {ModuleName}.
-Expected path pattern: src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.IntegrationTests/
+Expected path pattern: backend/src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.IntegrationTests/
 Create the project and add it to the solution before invoking this agent.
 ```
 
@@ -46,10 +46,10 @@ From `tasks.md`, extract only the tasks whose IDs match the list you received. T
 Run git to find what module-writer actually changed in this module:
 
 ```powershell
-git diff --name-only HEAD -- src/Modules/{ModuleName}/
+git diff --name-only HEAD -- backend/src/Modules/{ModuleName}/
 ```
 
-If the output is empty (module-writer's changes were not yet committed), fall back to: Glob all `.cs` files under `src/Modules/{ModuleName}/` and identify the key files manually.
+If the output is empty (module-writer's changes were not yet committed), fall back to: Glob all `.cs` files under `backend/src/Modules/{ModuleName}/` and identify the key files manually.
 
 **Always read (orientation files — mandatory regardless of git output):**
 - `{ModuleName}Module.cs` or the file that registers endpoints — routes, HTTP methods, auth requirements, request/response shapes
@@ -77,7 +77,7 @@ Never duplicate a scenario that is already covered and still valid.
 
 ### 1.5 Verify schema registration
 
-Grep for the module's EF Core schema name in `ThingsBooksyWebAppFactory.cs` (located in `src/Shared/ThingsBooksy.Shared.IntegrationTests/`). The schema name is the lowercase snake_case module name (e.g., `management_groups`, `users`).
+Grep for the module's EF Core schema name in `ThingsBooksyWebAppFactory.cs` (located in `backend/src/Shared/ThingsBooksy.Shared.IntegrationTests/`). The schema name is the lowercase snake_case module name (e.g., `management_groups`, `users`).
 
 If the schema is absent from `SchemasToInclude`, stop immediately:
 
@@ -363,9 +363,9 @@ Module: {ModuleName}
 Tasks covered: T001, T003, T005
 
 Files created:
-- src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.IntegrationTests/Clients/{ModuleName}TestClient.cs
-- src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.IntegrationTests/Clients/{ModuleName}UserFactory.cs
-- src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.IntegrationTests/{Feature}/{Feature}Tests.cs
+- backend/src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.IntegrationTests/Clients/{ModuleName}TestClient.cs
+- backend/src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.IntegrationTests/Clients/{ModuleName}UserFactory.cs
+- backend/src/Modules/{ModuleName}/ThingsBooksy.Modules.{ModuleName}.IntegrationTests/{Feature}/{Feature}Tests.cs
 
 Files extended:
 - (none)
@@ -414,7 +414,7 @@ Follow all relevant conventions in `.claude/conventions/` exactly. The rules bel
 - Never share state between tests through static fields.
 
 **No production code edits**
-- This agent writes only files under the IntegrationTests project directory. If a production bug is discovered, report it in `Blocked` and stop. Do not touch `src/Modules/{ModuleName}/{ModuleName}.Api/` or `{ModuleName}.Core/`.
+- This agent writes only files under the IntegrationTests project directory. If a production bug is discovered, report it in `Blocked` and stop. Do not touch `backend/src/Modules/{ModuleName}/{ModuleName}.Api/` or `{ModuleName}.Core/`.
 
 ---
 
