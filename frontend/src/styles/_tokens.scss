@@ -1,0 +1,122 @@
+:root {
+  // Colors — surfaces (dark)
+  --color-bg:                #080910;
+  --color-bg-elevated:       #0f1020;
+  --color-surface:           #13152b;
+  --color-surface-raised:    #1c1f3a;
+  --color-border:            #252848;
+  --color-border-strong:     #363a60;
+
+  // Colors — brand / accents
+  --color-accent-primary:    oklch(72% 0.19 284);
+  --color-accent-secondary:  oklch(75% 0.15 168);
+  --color-accent-tertiary:   oklch(80% 0.13 58);
+  --color-accent-cta-end:    oklch(68% 0.17 255);
+
+  // Colors — text
+  --color-text-primary:      #eeeef8;
+  --color-text-secondary:    #8890bb;
+  --color-text-muted:        #50547a;
+  --color-on-surface:        var(--color-text-primary);
+
+  // Colors — semantic feedback
+  --color-danger:            oklch(65% 0.22 18);
+  --color-danger-bg:         oklch(65% 0.22 18 / 0.1);
+  --color-danger-border:     oklch(65% 0.22 18 / 0.28);
+  --color-danger-text:       oklch(75% 0.18 18);
+  --color-warning:           oklch(78% 0.16 52);
+  --color-success:           oklch(72% 0.15 155);
+  --color-success-bg:        oklch(75% 0.14 168 / 0.1);
+  --color-success-border:    oklch(75% 0.14 168 / 0.28);
+  --color-success-text:      oklch(78% 0.13 168);
+
+  // Colors — overlay tints
+  --color-overlay-nav:       oklch(8% 0.02 260 / 0.65);
+  --color-overlay-card:      oklch(13% 0.025 265 / 0.72);
+  --color-overlay-ticker:    oklch(13% 0.025 265 / 0.55);
+  --color-grid-line:         oklch(65% 0.08 280 / 0.045);
+  --color-ring-stroke:       oklch(72% 0.18 284 / 0.1);
+
+  // Typography — families
+  --font-family-display:     'Outfit', system-ui, sans-serif;
+  --font-family-base:        'DM Sans', system-ui, sans-serif;
+
+  // Typography — sizes
+  --font-size-2xs:           0.625rem;
+  --font-size-xs:            0.6875rem;
+  --font-size-sm:            0.75rem;
+  --font-size-md:            0.8125rem;
+  --font-size-base:          0.875rem;
+  --font-size-lg:            1.0625rem;
+  --font-size-xl:            1.25rem;
+  --font-size-2xl:           1.75rem;
+  --font-size-hero:          clamp(2.75rem, 4.6vw, 4.625rem);
+
+  // Typography — weights
+  --font-weight-regular:     400;
+  --font-weight-medium:      500;
+  --font-weight-semibold:    600;
+  --font-weight-bold:        700;
+  --font-weight-extrabold:   800;
+
+  // Typography — line-heights / tracking
+  --line-height-base:        1.5;
+  --line-height-tight:       1.07;
+  --line-height-relaxed:     1.68;
+  --letter-spacing-tight:    -0.025em;
+  --letter-spacing-tighter:  -0.03em;
+  --letter-spacing-hero:     -0.038em;
+  --letter-spacing-uppercase: 0.06em;
+  --letter-spacing-ticker:   0.04em;
+
+  // Spacing (4-point scale)
+  --space-1:   0.25rem;
+  --space-2:   0.5rem;
+  --space-3:   0.75rem;
+  --space-4:   1rem;
+  --space-5:   1.25rem;
+  --space-6:   1.5rem;
+  --space-7:   1.75rem;
+  --space-8:   2rem;
+  --space-9:   2.25rem;
+  --space-10:  2.5rem;
+  --space-12:  3rem;
+  --space-14:  3.5rem;
+  --space-16:  4rem;
+  --space-18:  4.5rem;
+
+  // Border radius
+  --radius-sm:    0.3125rem;
+  --radius-md:    0.5625rem;
+  --radius-lg:    0.625rem;
+  --radius-xl:    0.6875rem;
+  --radius-2xl:   1.375rem;
+  --radius-full:  9999px;
+
+  // Shadows
+  --shadow-sm:           0 2px 10px rgb(0 0 0 / 0.375);
+  --shadow-card-lg:      0 40px 72px oklch(4% 0.02 260 / 0.55);
+  --shadow-card-ring:    0 0 0 1px oklch(72% 0.1 280 / 0.06);
+  --shadow-card-inset:   inset 0 1px 0 oklch(85% 0.07 280 / 0.1);
+  --shadow-cta-hover:    0 10px 32px oklch(72% 0.19 284 / 0.45);
+  --shadow-input-focus:  0 0 0 3px oklch(72% 0.19 284 / 0.12);
+
+  // Transitions
+  --transition-fast:    150ms cubic-bezier(0.22, 1, 0.36, 1);
+  --transition-base:    250ms cubic-bezier(0.22, 1, 0.36, 1);
+  --transition-slow:    400ms cubic-bezier(0.22, 1, 0.36, 1);
+  --transition-pill:    320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo:      cubic-bezier(0.22, 1, 0.36, 1);
+
+  // Backdrop blur tiers
+  --blur-nav:           24px;
+  --blur-card:          44px;
+  --blur-ticker:        16px;
+}
+
+// Breakpoints (SCSS variables — cannot live in :root because browsers do not
+// evaluate var() inside @media queries)
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 960px;
+$breakpoint-xl: 1280px;

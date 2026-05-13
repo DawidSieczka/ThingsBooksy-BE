@@ -1,0 +1,21 @@
+<label class="agree" [for]="inputId">
+  <input
+    type="checkbox"
+    class="agree__input"
+    [id]="inputId"
+    [formControl]="control()"
+  />
+  <span class="agree__box" aria-hidden="true">
+    @if (control().value) {
+      <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 8.5 6.5 12 13 4" />
+      </svg>
+    }
+  </span>
+  <span class="agree__text">
+    I agree to the
+    <a [href]="termsHref()" (click)="$event.preventDefault()">Terms of Service</a>
+    and
+    <a [href]="privacyHref()" (click)="$event.preventDefault()">Privacy Policy</a>.
+  </span>
+</label>

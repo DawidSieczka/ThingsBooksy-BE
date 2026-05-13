@@ -1,0 +1,33 @@
+<div class="auth-tabs" role="tablist" aria-label="Sign in or sign up">
+  <div
+    class="auth-tabs__pill"
+    [class.auth-tabs__pill--right]="mode() === 'sign-up'"
+    aria-hidden="true"
+  ></div>
+  <button
+    type="button"
+    class="auth-tabs__btn"
+    [class.auth-tabs__btn--active]="mode() === 'sign-in'"
+    role="tab"
+    [attr.aria-selected]="mode() === 'sign-in'"
+    aria-controls="auth-panel"
+    [tabindex]="mode() === 'sign-in' ? 0 : -1"
+    (click)="onSelect('sign-in')"
+    (keydown)="onKey($event, 'sign-in')"
+  >
+    Sign in
+  </button>
+  <button
+    type="button"
+    class="auth-tabs__btn"
+    [class.auth-tabs__btn--active]="mode() === 'sign-up'"
+    role="tab"
+    [attr.aria-selected]="mode() === 'sign-up'"
+    aria-controls="auth-panel"
+    [tabindex]="mode() === 'sign-up' ? 0 : -1"
+    (click)="onSelect('sign-up')"
+    (keydown)="onKey($event, 'sign-up')"
+  >
+    Sign up
+  </button>
+</div>

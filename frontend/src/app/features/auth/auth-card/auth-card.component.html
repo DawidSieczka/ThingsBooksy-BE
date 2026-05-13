@@ -1,0 +1,43 @@
+<div class="auth-card" id="auth-panel" role="tabpanel">
+  <header class="auth-card__header">
+    <h2 class="auth-card__title">
+      @if (mode() === 'sign-in') {
+        Welcome back
+      } @else {
+        Create your account
+      }
+    </h2>
+    <p class="auth-card__subtitle">
+      @if (mode() === 'sign-in') {
+        Sign in to continue booking your team's resources.
+      } @else {
+        Start booking resources in minutes — no credit card needed.
+      }
+    </p>
+  </header>
+
+  <tb-auth-tab-switcher [mode]="mode()" (modeChange)="onModeChange($event)" />
+
+  @if (errorMessage()) {
+    <tb-status-message tone="error" [message]="errorMessage()!" />
+  }
+  @if (successMessage()) {
+    <tb-status-message tone="success" [message]="successMessage()!" />
+  }
+
+  @if (mode() === 'sign-in') {
+    <tb-sign-in-form
+      [isLoading]="isLoading()"
+      (formSubmit)="onSignIn($event)"
+    />
+  } @else {
+    <tb-sign-up-form
+      [isLoading]="isLoading()"
+      (formSubmit)="onSignUp($event)"
+    />
+  }
+
+  <tb-auth-divider />
+
+  <tb-social-button-row />
+</div>
