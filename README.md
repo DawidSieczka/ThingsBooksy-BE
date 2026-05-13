@@ -9,32 +9,30 @@
 ThingsBooksy is a **Modular Monolith** — a single deployable artifact composed of isolated, independently-developed modules. Each module owns its domain, its database schema, and its HTTP surface. Modules never reference each other directly; all cross-module communication goes through events (fire-and-forget) or queries (request/response) via shared infrastructure abstractions.
 
 ```
-┌─────────────────────────────────────────────────────┐
-│              ThingsBooksy.Bootstrapper               │
-│  Discovers and composes all modules at startup via   │
-│  reflection (IModule interface)                      │
-└──────────────────┬──────────────────────────────────┘
-                   │
-         ┌─────────┴──────────┐
-         ▼                    ▼
-┌──────────────────┐  ┌──────────────────────┐
-│  Users           │  │  ManagementGroups     │
-│  .Api            │  │  .Api                 │
-│  .Core           │  │  .Core                │
-│  .Migrations     │  │  .Migrations          │
-│  .Contracts      │  │                       │
-└────────┬─────────┘  └──────────┬────────────┘
-         │    UserSignedUp       │
-         │ ─────────────────────►│
-         │    (IMessageBroker)
-         └────────────┬──────────┘
-                      │
-           ┌──────────▼──────────┐
-           │  Shared.Abstractions│
-           │  Events / Contracts │
-           │  IDispatcher        │
-           │  IMessageBroker     │
-           └─────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│                   ThingsBooksy.Bootstrapper                    │
+│      Discovers and composes all modules at startup via         │
+│      reflection (IModule interface)                            │
+└───────────────────────────────┬───────────────────────────────┘
+                                │
+          ┌─────────────────────┼─────────────────────┐
+          ▼                     ▼                     ▼
+┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐
+│       Users       │ │  ManagementGroups │ │     Resources     │
+│       .Api        │ │       .Api        │ │       .Api        │
+│       .Core       │ │       .Core       │ │       .Core       │
+│    .Migrations    │ │    .Migrations    │ │    .Migrations    │
+│ .IntegrationTests │ │ .IntegrationTests │ │ .IntegrationTests │
+└─────────┬─────────┘ └─────────┬─────────┘ └─────────┬─────────┘
+          │                     │                     │
+          └─────────────────────┼─────────────────────┘
+                                │
+                   ┌────────────▼────────────┐
+                   │   Shared.Abstractions   │
+                   │   Events / Contracts    │
+                   │   IDispatcher           │
+                   │   IMessageBroker        │
+                   └─────────────────────────┘
 ```
 
 Each module follows a consistent project structure:
@@ -43,8 +41,9 @@ Each module follows a consistent project structure:
 src/Modules/{ModuleName}/
 ├── {ModuleName}.Api               # Minimal API endpoints, DTOs, module config
 ├── {ModuleName}.Core              # Domain entities, EF DbContext, handlers
-├── {ModuleName}.Migrations        # EF Core migrations (optional)
-├── {ModuleName}.Contracts         # Contracts exposed to other modules (optional)
+└── {ModuleName}.Migrations        # EF Core migrations (optional)
+
+tests/
 └── {ModuleName}.IntegrationTests  # Integration tests
 ```
 
@@ -56,6 +55,7 @@ src/Modules/{ModuleName}/
 |---|---|
 | **Users** | Authentication and user account management |
 | **ManagementGroups** | Creation and management of groups and their memberships |
+| **Resources** | EAV-based resource schema — resource types with property definitions, and resource instances with typed attribute values |
 
 ---
 
@@ -71,6 +71,26 @@ src/Modules/{ModuleName}/
 | API docs | Swashbuckle / Swagger UI (`/swagger`) |
 | Logging | Serilog |
 | Containerization | Docker / docker-compose |
+
+---
+
+## Rules & Conventions
+
+All conventions live in `.claude/conventions/`. Every agent that writes or reviews code must follow them exactly.
+
+| Convention | Summary |
+|---|---|
+| **domain-entity-design** | All entity properties use `private set`; entities are created via a static `Create()` factory (max 4 params) and mutated through named domain methods only. Read-models use `Upsert()` instead of `Create()`. |
+| **naming-commands-queries-handlers-results** | Commands, queries, and handlers use full module-scoped PascalCase with their respective suffixes (`Command`, `CommandHandler`, `Query`, `QueryHandler`). Result types are derived mechanically from the handler name by stripping `Handler`. |
+| **data-provider-pattern** | Handlers never inject `DbContext` directly — each handler depends on a dedicated `IXxxDataProvider` interface co-located in its feature folder. Providers are registered automatically via `AddDataProviders` called once per module. |
+| **data-provider-query-syntax** | DataProvider methods use parenthesized LINQ query syntax with materialization chained outside — `(from ... select ...).ToListAsync(ct)` — for joins and group-by; method syntax is allowed only for simple single-table queries. |
+| **command-construction-in-endpoints** | Commands are never bound directly from the HTTP request body; a request DTO (`{Module}.Api/Requests/`) holds only client-permitted fields, and the endpoint constructs the command explicitly. |
+| **minimal-api-endpoints** | All HTTP endpoints use Minimal API (no MVC controllers), registered in `Expose()` with a `/{module-name}/...` route prefix. `AddEndpointsApiExplorer()` must be called in `Register()`. |
+| **dispatcher-usage** | All commands go through `IDispatcher.SendAsync`, all queries through `IDispatcher.QueryAsync`. Direct handler calls and MediatR are forbidden. |
+| **ef-schema-isolation** | Every module `DbContext` must call `modelBuilder.HasDefaultSchema(...)` with the module's lowercase snake_case name. Using `"public"` or omitting the call is forbidden. |
+| **internals-visible-to** | Every `.Core` project must declare four `InternalsVisibleTo` attributes: for `.Api`, `.Migrations`, `.IntegrationTests`, and `DynamicProxyGenAssembly2`. |
+| **integration-test-naming** | Test methods follow `{Action}{Entity}_{Condition}_{Result}` — the result segment is an HTTP status code for simple status assertions or a behavioral description when the test also asserts side effects or DB state. |
+| **integration-test-infrastructure** | Each module defines a `TestClient` (HTTP + DB methods), entity `Factory` classes (direct DB insertion), and a module-scoped `IntegrationTestCollection`. Each test creates its own user to avoid shared state. |
 
 ---
 
@@ -113,6 +133,7 @@ If `architecture-guard` finds unresolved violations, a repair loop is triggered:
 | Agent | Responsibility |
 |---|---|
 | **agent-architect** | Designs new agents for the fleet. Challenges bad ideas, proposes improvements to the agent ecosystem. |
+| **convention-writer** | Interactive agent for writing new coding conventions — challenges the proposal, refines through dialogue, and writes the rule to `.claude/conventions/` after approval. |
 | **product-strategist** | Conducts a two-phase business + technical interview to clarify a feature before any code is written. Produces a handoff brief for `/speckit-specify`. |
 | **doc-writer** | Writes Architecture Decision Records (ADRs) in `.specify/decisions/` immediately after `product-strategist` delivers a brief. |
 | **plan-validator** | Runs deterministic consistency checks across `spec.md`, `plan.md`, and `tasks.md`. Returns a `GO`/`NO-GO` verdict and an Execution Map that groups tasks into parallel Waves. |
