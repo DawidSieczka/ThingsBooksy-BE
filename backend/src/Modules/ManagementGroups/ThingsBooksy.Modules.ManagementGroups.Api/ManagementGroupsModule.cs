@@ -7,7 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ThingsBooksy.Modules.ManagementGroups.Api.Requests;
 using ThingsBooksy.Modules.ManagementGroups.Core;
-using ThingsBooksy.Modules.ManagementGroups.Core.Events.Handlers;
 using ThingsBooksy.Modules.ManagementGroups.Core.Features.AddGroupMember;
 using ThingsBooksy.Modules.ManagementGroups.Core.Features.CreateManagementGroup;
 using ThingsBooksy.Modules.ManagementGroups.Core.Features.DeleteManagementGroup;
@@ -19,8 +18,6 @@ using ThingsBooksy.Modules.ManagementGroups.Core.Features.RemoveGroupMember;
 using ThingsBooksy.Modules.ManagementGroups.Core.Features.RestoreManagementGroup;
 using ThingsBooksy.Modules.ManagementGroups.Core.Features.UpdateManagementGroup;
 using ThingsBooksy.Shared.Abstractions.Dispatchers;
-using ThingsBooksy.Shared.Abstractions.Events;
-using ThingsBooksy.Shared.Abstractions.Events.Users;
 using ThingsBooksy.Shared.Abstractions.Modules;
 
 namespace ThingsBooksy.Modules.ManagementGroups.Api;
@@ -34,7 +31,6 @@ internal sealed class ManagementGroupsModule : IModule
     {
         services.AddEndpointsApiExplorer();
         services.AddManagementGroupsCore(configuration);
-        services.AddScoped<IEventHandler<UserSignedUp>, UserSignedUpHandler>();
     }
 
     public void Use(IApplicationBuilder app) { }

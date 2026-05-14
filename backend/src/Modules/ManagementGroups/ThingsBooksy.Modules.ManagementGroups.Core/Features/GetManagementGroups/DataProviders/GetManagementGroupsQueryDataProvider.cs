@@ -17,6 +17,12 @@ internal sealed class GetManagementGroupsQueryDataProvider : IGetManagementGroup
     public Task<List<GetManagementGroupsQueryResult>> GetForUserAsync(Guid userId, CancellationToken ct)
         => (from g in _dbContext.ManagementGroups
             where g.OwnerId == userId || g.Members.Any(m => m.UserId == userId)
-            select new GetManagementGroupsQueryResult(g.Id, g.Name, g.Description, g.OwnerId, g.CreatedAt))
+            select new GetManagementGroupsQueryResult(
+                g.Id,
+                g.Name,
+                g.Description,
+                g.OwnerId,
+                g.CreatedAt,
+                g.Members.Count + 1))
            .ToListAsync(ct);
 }

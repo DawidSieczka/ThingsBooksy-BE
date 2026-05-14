@@ -20,8 +20,8 @@ const mockResources: ResourceRowDto[] = [
 ];
 
 const mockSchemas: SchemaSummary[] = [
-  { id: 'schema-a', name: 'Laptops', description: null, instanceCount: 1 },
-  { id: 'schema-b', name: 'Rooms', description: null, instanceCount: 1 },
+  { id: 'schema-a', name: 'Laptops', description: null, propertyDefinitionsCount: 1, propertyDefinitions: [] },
+  { id: 'schema-b', name: 'Rooms', description: null, propertyDefinitionsCount: 1, propertyDefinitions: [] },
 ];
 
 describe('ResourcesPanelComponent', () => {

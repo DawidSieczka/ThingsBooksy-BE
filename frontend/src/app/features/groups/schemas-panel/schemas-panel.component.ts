@@ -25,4 +25,6 @@ export class SchemasPanelComponent {
 
   readonly addSchema: OutputEmitterRef<void> = output<void>();
   readonly selectSchema: OutputEmitterRef<string> = output<string>();
+  readonly addResourceForSchema: OutputEmitterRef<string> = output<string>();
+  readonly deleteSchema: OutputEmitterRef<SchemaSummary> = output<SchemaSummary>();
 }

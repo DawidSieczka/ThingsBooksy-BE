@@ -8,7 +8,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ThingsBooksy.Modules.Resources.Api.Requests;
 using ThingsBooksy.Modules.Resources.Core;
-using ThingsBooksy.Modules.Resources.Core.Events.Handlers;
 using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceInstance;
 using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceType;
 using ThingsBooksy.Modules.Resources.Core.Features.DeleteResourceInstance;
@@ -20,8 +19,6 @@ using ThingsBooksy.Modules.Resources.Core.Features.UpdateResourceInstance;
 using ThingsBooksy.Modules.Resources.Core.Features.UpdateResourceType;
 using ThingsBooksy.Modules.Resources.Core.Features.DeleteResourceType;
 using ThingsBooksy.Shared.Abstractions.Dispatchers;
-using ThingsBooksy.Shared.Abstractions.Events;
-using ThingsBooksy.Shared.Abstractions.Events.ManagementGroups;
 using ThingsBooksy.Shared.Abstractions.Modules;
 
 namespace ThingsBooksy.Modules.Resources.Api;
@@ -35,10 +32,6 @@ internal sealed class ResourcesModule : IModule
     {
         services.AddEndpointsApiExplorer();
         services.AddResourcesCore(configuration);
-        services.AddScoped<IEventHandler<GroupCreated>, GroupCreatedHandler>();
-        services.AddScoped<IEventHandler<GroupDeleted>, GroupDeletedHandler>();
-        services.AddScoped<IEventHandler<GroupMemberAdded>, GroupMemberAddedHandler>();
-        services.AddScoped<IEventHandler<GroupMemberRemoved>, GroupMemberRemovedHandler>();
     }
 
     public void Use(IApplicationBuilder app) { }

@@ -10,16 +10,18 @@ import {
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { GroupContextStore } from '../group-context.store';
+import { GroupContextStore, SchemaSummary } from '../group-context.store';
 import { GroupsService } from '../groups.service';
 import { AnimatedBackgroundComponent } from '../../../shared/components/animated-background/animated-background.component';
 import { CreateOrEditGroupModalComponent } from '../../dashboard/create-group-modal/create-group-modal.component';
+import { CreateResourceModalComponent } from '../create-resource-modal/create-resource-modal.component';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { GroupHeaderPanelComponent } from '../group-header-panel/group-header-panel.component';
 import { SchemasPanelComponent } from '../schemas-panel/schemas-panel.component';
 import { ResourcesPanelComponent } from '../resources-panel/resources-panel.component';
 import { MembersPanelComponent } from '../members-panel/members-panel.component';
+import { ResourcesApiService } from '../services/resources-api.service';
 
 @Component({
   selector: 'tb-group-detail-page',
@@ -30,6 +32,7 @@ import { MembersPanelComponent } from '../members-panel/members-panel.component'
     RouterModule,
     AnimatedBackgroundComponent,
     CreateOrEditGroupModalComponent,
+    CreateResourceModalComponent,
     GroupHeaderPanelComponent,
     SchemasPanelComponent,
     ResourcesPanelComponent,
@@ -48,6 +51,10 @@ export class GroupDetailPageComponent implements OnInit {
 
   readonly editOpen = signal(false);
   readonly deleteLoading = signal(false);
+  readonly resourceModalOpen = signal(false);
+  readonly resourceModalSchemaId = signal<string | null>(null);
+
+  private readonly resourcesApi = inject(ResourcesApiService);
 
   private readonly paramMap = toSignal(this.route.paramMap);
   readonly groupId = computed(() => this.paramMap()?.get('groupId') ?? null);
@@ -136,7 +143,50 @@ export class GroupDetailPageComponent implements OnInit {
   }
 
   onAddResource(): void {
-    // US3 (T049) will wire this to the create-resource modal.
+    this.resourceModalSchemaId.set(null);
+    this.resourceModalOpen.set(true);
+  }
+
+  onAddResourceForSchema(schemaId: string): void {
+    this.resourceModalSchemaId.set(schemaId);
+    this.resourceModalOpen.set(true);
+  }
+
+  onResourceModalClose(): void {
+    this.resourceModalOpen.set(false);
+  }
+
+  async onResourceCreated(payload: { id: string; resourceTypeId: string; name: string }): Promise<void> {
+    this.resourceModalOpen.set(false);
+    const id = this.groupId();
+    if (!id) return;
+    // Refresh first page so the new resource (and any concurrent inserts) is reflected.
+    void this.store.loadGroup(id);
+    // Suppress unused parameter warning; payload available if we want optimistic prepend later.
+    void payload;
+  }
+
+  async onDeleteSchema(schema: SchemaSummary): Promise<void> {
+    const instanceCount = this.store.countResourcesOfSchema(schema.id);
+    const confirmed = await this.confirmDialog.confirm({
+      title: `Delete schema '${schema.name}'?`,
+      message:
+        instanceCount > 0
+          ? `${instanceCount} loaded resource(s) of this type will also be deleted.`
+          : 'This schema will be deleted.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      danger: true,
+    });
+    if (!confirmed) return;
+
+    try {
+      await firstValueFrom(this.resourcesApi.deleteResourceType(schema.id));
+      this.store.removeSchema(schema.id);
+      this.notifications.success('Schema deleted');
+    } catch {
+      // errorInterceptor surfaces toast
+    }
   }
 
   onRetry(): void {

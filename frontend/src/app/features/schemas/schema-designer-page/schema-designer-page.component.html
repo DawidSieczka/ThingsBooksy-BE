@@ -1,0 +1,65 @@
+<div class="schema-designer-page">
+  <header class="schema-designer-page__header">
+    <div class="schema-designer-page__crumbs">
+      <a class="schema-designer-page__crumb" [routerLink]="['/groups', groupId()]">Group</a>
+      <span aria-hidden="true">/</span>
+      <span class="schema-designer-page__crumb schema-designer-page__crumb--current">
+        {{ title() }}
+      </span>
+    </div>
+
+    <div
+      class="schema-designer-page__badge"
+      [class.schema-designer-page__badge--unsaved]="badgeState() === 'unsaved'"
+      [class.schema-designer-page__badge--saved]="badgeState() === 'saved'"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="schema-designer-page__badge-dot"></span>
+      {{ badgeLabel() }}
+    </div>
+  </header>
+
+  @if (isLoading()) {
+    <div class="schema-designer-page__loading" role="status">
+      <p>Loading schema…</p>
+    </div>
+  } @else {
+    <div class="schema-designer-page__columns">
+      <tb-schema-form-panel
+        [name]="name()"
+        [description]="description()"
+        [fields]="fields()"
+        [nameError]="nameError()"
+        (nameChange)="onNameChange($event)"
+        (descriptionChange)="onDescriptionChange($event)"
+        (fieldsChange)="onFieldsChange($event)"
+      />
+
+      <tb-schema-preview-panel
+        [name]="name()"
+        [description]="description()"
+        [fields]="fields()"
+      />
+    </div>
+  }
+
+  <footer class="schema-designer-page__footer">
+    <button
+      type="button"
+      class="schema-designer-page__btn schema-designer-page__btn--ghost"
+      (click)="onCancel()"
+      [disabled]="isSaving()"
+    >
+      Cancel
+    </button>
+    <button
+      type="button"
+      class="schema-designer-page__btn schema-designer-page__btn--primary"
+      (click)="onSave()"
+      [disabled]="!canSubmit()"
+    >
+      {{ isSaving() ? 'Saving…' : 'Save schema' }}
+    </button>
+  </footer>
+</div>

@@ -19,8 +19,9 @@
       (viewAllClicked)="onViewAll()"
     />
     <tb-dashboard-admin-panel
-      [memberGroups]="memberGroups"
-      [adminGroups]="adminGroups"
+      [memberGroups]="memberGroups()"
+      [adminGroups]="ownedGroups()"
+      [loading]="groupsLoading()"
       (createGroupClicked)="onCreateGroup()"
     />
   </div>
@@ -29,4 +30,5 @@
 <tb-create-group-modal
   [open]="modalOpen()"
   (close)="onCloseModal()"
+  (submitted)="onGroupSubmitted($event)"
 />

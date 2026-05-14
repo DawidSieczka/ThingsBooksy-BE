@@ -53,6 +53,8 @@
           [isOwner]="store.isOwner()"
           (addSchema)="onAddSchema()"
           (selectSchema)="onSelectSchema($event)"
+          (addResourceForSchema)="onAddResourceForSchema($event)"
+          (deleteSchema)="onDeleteSchema($event)"
         />
       </div>
 
@@ -87,3 +89,13 @@
   (close)="onEditModalClose()"
   (submitted)="onEditSubmitted()"
 />
+
+@if (groupId()) {
+  <tb-create-resource-modal
+    [open]="resourceModalOpen()"
+    [groupId]="groupId()!"
+    [preselectedSchemaId]="resourceModalSchemaId()"
+    (close)="onResourceModalClose()"
+    (created)="onResourceCreated($event)"
+  />
+}

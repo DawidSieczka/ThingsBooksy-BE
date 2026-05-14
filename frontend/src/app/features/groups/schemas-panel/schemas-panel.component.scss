@@ -214,6 +214,58 @@
     flex-shrink: 0;
     color: var(--color-text-muted);
   }
+
+  &__row-wrapper {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+
+    &:hover .schemas-panel__row-actions {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  &__row-actions {
+    position: absolute;
+    right: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding-right: var(--space-7); // space for the chevron
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-fast);
+  }
+
+  &__row-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    color: var(--color-text-muted);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: color var(--transition-fast), background var(--transition-fast),
+      border-color var(--transition-fast);
+
+    &--add:hover {
+      color: var(--color-accent-primary);
+      background: var(--color-chip-primary-bg);
+      border-color: var(--color-chip-primary-border);
+    }
+
+    &--delete:hover {
+      color: var(--color-danger-text);
+      background: var(--color-danger-bg);
+      border-color: var(--color-danger-border);
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -8,6 +8,7 @@ using ThingsBooksy.Modules.Resources.Core.DAL;
 using ThingsBooksy.Modules.Resources.IntegrationTests.Clients;
 using ThingsBooksy.Shared.Abstractions.Events;
 using ThingsBooksy.Shared.Abstractions.Events.ManagementGroups;
+using ThingsBooksy.Shared.Infrastructure.Contexts;
 using ThingsBooksy.Shared.IntegrationTests;
 using Xunit;
 
@@ -135,6 +136,7 @@ public class GroupDeletedHandlerTests : IntegrationTestBase
     private async Task InvokeHandlerAsync(GroupDeleted @event)
     {
         using var scope = Factory.Services.CreateScope();
+        scope.ServiceProvider.GetRequiredService<ContextAccessor>().Context = Context.Empty;
         var handler = scope.ServiceProvider.GetRequiredService<IEventHandler<GroupDeleted>>();
         await handler.HandleAsync(@event);
     }

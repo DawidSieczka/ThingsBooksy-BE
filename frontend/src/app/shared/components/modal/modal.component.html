@@ -3,7 +3,6 @@
   class="modal"
   (cancel)="onCancel($event)"
   (click)="onBackdropClick($event)"
-  [@modalEnter]
 >
   <div class="modal__panel" (click)="$event.stopPropagation()">
     @if (title()) {

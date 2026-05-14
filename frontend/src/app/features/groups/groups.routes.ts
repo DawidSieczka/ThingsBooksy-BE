@@ -7,12 +7,10 @@ export const groupsRoutes: Routes = [
       import('./group-detail-page/group-detail-page.component').then(
         m => m.GroupDetailPageComponent,
       ),
-    children: [
-      {
-        path: 'schemas',
-        loadChildren: () =>
-          import('../schemas/schemas.routes').then(m => m.schemasRoutes),
-      },
-    ],
+  },
+  {
+    path: ':groupId/schemas',
+    loadChildren: () =>
+      import('../schemas/schemas.routes').then(m => m.schemasRoutes),
   },
 ];

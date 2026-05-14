@@ -1,5 +1,5 @@
-// TODO: replace with /bookings + /management-groups API once those modules ship.
-// Hardcoded mock matching the Claude Design dashboard mockup.
+// TODO: replace with /bookings API once the bookings module ships.
+// History rows remain mocked because no booking endpoint exists yet.
 
 export type ReservationStatus = 'confirmed' | 'cancelled';
 export type DotColor = 'primary' | 'secondary' | 'tertiary';
@@ -13,15 +13,6 @@ export interface HistoryRow {
   readonly amount: string;
   readonly status: ReservationStatus;
   readonly dot: DotColor;
-}
-
-export interface GroupItem {
-  readonly id: string;
-  readonly name: string;
-  readonly memberCount: number;
-  readonly initials: string;
-  readonly accent: DotColor;
-  readonly isAdmin: boolean;
 }
 
 export const HISTORY_ROWS: readonly HistoryRow[] = [
@@ -85,16 +76,4 @@ export const HISTORY_ROWS: readonly HistoryRow[] = [
     status: 'cancelled',
     dot: 'tertiary',
   },
-];
-
-export const MEMBER_GROUPS: readonly GroupItem[] = [
-  { id: 'grp-1', name: 'Datacenter Ops', memberCount: 12, initials: 'DO', accent: 'primary', isAdmin: false },
-  { id: 'grp-2', name: 'Product', memberCount: 8, initials: 'PR', accent: 'secondary', isAdmin: false },
-  { id: 'grp-3', name: 'Field Sales', memberCount: 5, initials: 'FS', accent: 'tertiary', isAdmin: false },
-  { id: 'grp-4', name: 'Marketing', memberCount: 7, initials: 'MK', accent: 'primary', isAdmin: false },
-];
-
-export const ADMIN_GROUPS: readonly GroupItem[] = [
-  { id: 'grp-5', name: 'Engineering', memberCount: 14, initials: 'EN', accent: 'secondary', isAdmin: true },
-  { id: 'grp-6', name: 'Design Studio', memberCount: 4, initials: 'DS', accent: 'tertiary', isAdmin: true },
 ];

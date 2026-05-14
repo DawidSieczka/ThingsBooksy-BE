@@ -1,0 +1,122 @@
+<tb-modal
+  [open]="open()"
+  title="Add resource"
+  (close)="onCancel()"
+>
+  <form
+    class="create-resource-modal__form"
+    [formGroup]="form"
+    (submit)="$event.preventDefault(); onSubmit()"
+  >
+    <div class="create-resource-modal__field">
+      <label class="create-resource-modal__label" for="resource-schema">Schema</label>
+      @if (preselectedSchemaId() && selectedSchema()) {
+        <div class="create-resource-modal__chip" aria-readonly="true">
+          {{ selectedSchema()!.name }}
+        </div>
+      } @else {
+        <select
+          id="resource-schema"
+          class="create-resource-modal__input"
+          [value]="selectedSchemaId() ?? ''"
+          (change)="onSchemaPick($event)"
+        >
+          <option value="" disabled>— Pick a schema —</option>
+          @for (schema of schemas(); track schema.id) {
+            <option [value]="schema.id">{{ schema.name }}</option>
+          }
+        </select>
+      }
+    </div>
+
+    <div class="create-resource-modal__field">
+      <label class="create-resource-modal__label" for="resource-name">Name</label>
+      <input
+        id="resource-name"
+        class="create-resource-modal__input"
+        type="text"
+        formControlName="name"
+        maxlength="200"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="create-resource-modal__field">
+      <label class="create-resource-modal__label" for="resource-description">Description</label>
+      <textarea
+        id="resource-description"
+        class="create-resource-modal__textarea"
+        formControlName="description"
+        maxlength="500"
+        rows="2"
+      ></textarea>
+    </div>
+
+    @if (selectedSchema()) {
+      @if (properties().length > 0) {
+        <div class="create-resource-modal__properties" formGroupName="properties">
+          @for (property of properties(); track property.id) {
+            <div class="create-resource-modal__field">
+              <label class="create-resource-modal__label" [attr.for]="'prop-' + property.id">
+                {{ property.name }}
+                @if (property.isRequired) {
+                  <span class="create-resource-modal__required" aria-label="Required">*</span>
+                }
+              </label>
+
+              @switch (property.dataType) {
+                @case ('Text') {
+                  <input
+                    [id]="'prop-' + property.id"
+                    class="create-resource-modal__input"
+                    type="text"
+                    [formControlName]="property.id"
+                  />
+                }
+                @case ('Number') {
+                  <input
+                    [id]="'prop-' + property.id"
+                    class="create-resource-modal__input"
+                    type="number"
+                    step="any"
+                    [formControlName]="property.id"
+                  />
+                }
+                @case ('Boolean') {
+                  <select
+                    [id]="'prop-' + property.id"
+                    class="create-resource-modal__input"
+                    [formControlName]="property.id"
+                  >
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                }
+              }
+            </div>
+          }
+        </div>
+      }
+    } @else {
+      <p class="create-resource-modal__hint">Select a schema to fill in resource fields.</p>
+    }
+
+    <div class="create-resource-modal__actions">
+      <button
+        type="button"
+        class="create-resource-modal__btn create-resource-modal__btn--ghost"
+        (click)="onCancel()"
+        [disabled]="submitting()"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="create-resource-modal__btn create-resource-modal__btn--primary"
+        [disabled]="!selectedSchemaId() || form.invalid || submitting()"
+      >
+        {{ submitting() ? 'Creating…' : 'Create resource' }}
+      </button>
+    </div>
+  </form>
+</tb-modal>

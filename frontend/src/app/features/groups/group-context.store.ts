@@ -2,18 +2,22 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import {
   ThingsBooksyModulesManagementGroupsCoreFeaturesGetGroupMembersGroupMemberDto as MemberDto,
-  ThingsBooksyModulesManagementGroupsCoreFeaturesGetManagementGroupGetManagementGroupQueryResult as GroupDetailDto,
   ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesResourceInstanceRowDto as ResourceRowDto,
 } from '../../api/data-contracts';
-import { ManagementGroups } from '../../api/ManagementGroups';
-import { Resources } from '../../api/Resources';
 import { AuthService } from '../auth/auth.service';
+import { GroupDetailDto, GroupsApiService } from './services/groups-api.service';
+import {
+  PropertyDefinitionDto,
+  ResourcesApiService,
+  ResourceTypeSummaryDto,
+} from './services/resources-api.service';
 
 export interface SchemaSummary {
   readonly id: string;
   readonly name: string;
   readonly description: string | null;
-  readonly instanceCount: number;
+  readonly propertyDefinitionsCount: number;
+  readonly propertyDefinitions: PropertyDefinitionDto[];
 }
 
 export interface CursorPage<T> {
@@ -26,8 +30,8 @@ const PAGE_SIZE = 20;
 
 @Injectable()
 export class GroupContextStore {
-  private readonly mgClient = inject(ManagementGroups);
-  private readonly resourcesClient = inject(Resources);
+  private readonly groupsApi = inject(GroupsApiService);
+  private readonly resourcesApi = inject(ResourcesApiService);
   private readonly auth = inject(AuthService);
 
   private readonly _group = signal<GroupDetailDto | null>(null);
@@ -62,29 +66,24 @@ export class GroupContextStore {
     this._initialLoading.set(true);
     this._initialError.set(null);
     try {
-      const [group, schemas, members, resources] = await Promise.all([
-        firstValueFrom(this.mgClient.getManagementGroup(groupId) as any),
-        firstValueFrom(this.resourcesClient.getResourceTypes({ GroupId: groupId } as any) as any),
+      const [group, schemas, membersPage, resourcesPage] = await Promise.all([
+        firstValueFrom(this.groupsApi.getGroup(groupId)),
+        firstValueFrom(this.resourcesApi.getResourceTypes(groupId)),
+        firstValueFrom(this.groupsApi.getGroupMembers(groupId, { take: PAGE_SIZE })),
         firstValueFrom(
-          this.mgClient.getGroupMembers(groupId, { take: PAGE_SIZE } as any) as any,
-        ),
-        firstValueFrom(
-          this.resourcesClient.getResourceInstances({
-            GroupId: groupId,
-            Take: PAGE_SIZE,
-          } as any) as any,
+          this.resourcesApi.getResourceInstances({ groupId, take: PAGE_SIZE }),
         ),
       ]);
-      this._group.set(group as GroupDetailDto);
-      this._schemas.set(this.mapSchemas((schemas as any[]) ?? []));
+      this._group.set(group);
+      this._schemas.set(this.mapSchemas(schemas));
       this._members.set({
-        items: ((members as any).items ?? []) as MemberDto[],
-        nextCursor: (members as any).nextCursor ?? null,
+        items: membersPage.items ?? [],
+        nextCursor: membersPage.nextCursor ?? null,
         loading: false,
       });
       this._resources.set({
-        items: ((resources as any).items ?? []) as ResourceRowDto[],
-        nextCursor: (resources as any).nextCursor ?? null,
+        items: resourcesPage.items ?? [],
+        nextCursor: resourcesPage.nextCursor ?? null,
         loading: false,
       });
     } catch (err) {
@@ -103,12 +102,12 @@ export class GroupContextStore {
     }
     this._members.set({ ...current, loading: true });
     try {
-      const page = (await firstValueFrom(
-        this.mgClient.getGroupMembers(groupId, {
+      const page = await firstValueFrom(
+        this.groupsApi.getGroupMembers(groupId, {
           afterId: current.nextCursor,
           take: PAGE_SIZE,
-        } as any) as any,
-      )) as { items: MemberDto[]; nextCursor: string | null };
+        }),
+      );
       this._members.set({
         items: [...current.items, ...(page.items ?? [])],
         nextCursor: page.nextCursor ?? null,
@@ -126,13 +125,13 @@ export class GroupContextStore {
     }
     this._resources.set({ ...current, loading: true });
     try {
-      const page = (await firstValueFrom(
-        this.resourcesClient.getResourceInstances({
-          GroupId: groupId,
-          AfterId: current.nextCursor,
-          Take: PAGE_SIZE,
-        } as any) as any,
-      )) as { items: ResourceRowDto[]; nextCursor: string | null };
+      const page = await firstValueFrom(
+        this.resourcesApi.getResourceInstances({
+          groupId,
+          afterId: current.nextCursor,
+          take: PAGE_SIZE,
+        }),
+      );
       this._resources.set({
         items: [...current.items, ...(page.items ?? [])],
         nextCursor: page.nextCursor ?? null,
@@ -151,12 +150,45 @@ export class GroupContextStore {
     this._group.set(null);
   }
 
-  private mapSchemas(raw: any[]): SchemaSummary[] {
-    return raw.map(r => ({
-      id: r.id ?? r.Id,
-      name: r.name ?? r.Name ?? '',
-      description: r.description ?? r.Description ?? null,
-      instanceCount: r.instanceCount ?? r.InstanceCount ?? 0,
-    }));
+  prependResource(resource: ResourceRowDto): void {
+    const current = this._resources();
+    this._resources.set({ ...current, items: [resource, ...current.items] });
+  }
+
+  addSchema(schema: ResourceTypeSummaryDto): void {
+    this._schemas.set([...this._schemas(), this.toSummary(schema)]);
+  }
+
+  replaceSchema(schema: ResourceTypeSummaryDto): void {
+    this._schemas.set(
+      this._schemas().map(s => (s.id === schema.id ? this.toSummary(schema) : s)),
+    );
+  }
+
+  removeSchema(schemaId: string): void {
+    this._schemas.set(this._schemas().filter(s => s.id !== schemaId));
+    const r = this._resources();
+    this._resources.set({
+      ...r,
+      items: r.items.filter(row => row.resourceTypeId !== schemaId),
+    });
+  }
+
+  countResourcesOfSchema(schemaId: string): number {
+    return this._resources().items.filter(r => r.resourceTypeId === schemaId).length;
+  }
+
+  private mapSchemas(raw: ResourceTypeSummaryDto[]): SchemaSummary[] {
+    return raw.map(r => this.toSummary(r));
+  }
+
+  private toSummary(schema: ResourceTypeSummaryDto): SchemaSummary {
+    return {
+      id: schema.id,
+      name: schema.name,
+      description: schema.description ?? null,
+      propertyDefinitionsCount: schema.propertyDefinitions?.length ?? 0,
+      propertyDefinitions: schema.propertyDefinitions ?? [],
+    };
   }
 }

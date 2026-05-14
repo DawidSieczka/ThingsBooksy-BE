@@ -1,0 +1,163 @@
+@use 'styles/tokens' as *;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  padding: var(--space-12) var(--space-6) var(--space-16);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+.schema-designer-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  &__crumbs {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  &__crumb {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+
+    &:hover {
+      color: var(--color-text-primary);
+    }
+
+    &--current {
+      color: var(--color-text-primary);
+      font-weight: var(--font-weight-medium);
+    }
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    transition: background var(--transition-base), color var(--transition-base),
+      border-color var(--transition-base);
+
+    &-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-text-muted);
+      transition: background var(--transition-base);
+    }
+
+    &--unsaved {
+      color: var(--color-warning-text);
+      border-color: oklch(78% 0.16 52 / 0.4);
+      background: oklch(78% 0.16 52 / 0.1);
+
+      .schema-designer-page__badge-dot {
+        background: var(--color-warning);
+        animation: draftPulse 2s ease-in-out infinite;
+      }
+    }
+
+    &--saved {
+      color: var(--color-success-text);
+      border-color: var(--color-success-border);
+      background: var(--color-success-bg);
+
+      .schema-designer-page__badge-dot {
+        background: var(--color-success);
+      }
+    }
+  }
+
+  &__loading {
+    padding: var(--space-12);
+    text-align: center;
+    color: var(--color-text-muted);
+    background: var(--color-overlay-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2xl);
+  }
+
+  &__columns {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+
+    @media (min-width: $breakpoint-lg) {
+      grid-template-columns: 1fr 1fr;
+      align-items: flex-start;
+    }
+  }
+
+  &__footer {
+    position: sticky;
+    bottom: var(--space-6);
+    align-self: flex-end;
+    display: inline-flex;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-overlay-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(var(--blur-card));
+  }
+
+  &__btn {
+    padding: var(--space-2) var(--space-5);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast),
+      box-shadow var(--transition-fast);
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &--ghost {
+      color: var(--color-text-secondary);
+      background: transparent;
+      border-color: var(--color-border);
+
+      &:hover:not(:disabled) {
+        color: var(--color-text-primary);
+        background: var(--color-bg-elevated);
+      }
+    }
+
+    &--primary {
+      color: var(--color-text-primary);
+      background: var(--gradient-btn);
+
+      &:hover:not(:disabled) {
+        box-shadow: var(--shadow-cta-hover);
+      }
+    }
+  }
+}

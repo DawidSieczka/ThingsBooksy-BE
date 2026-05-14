@@ -1,0 +1,81 @@
+<div class="field-row" [class.field-row--error]="nameError()">
+  <button
+    type="button"
+    class="field-row__drag-handle"
+    cdkDragHandle
+    aria-label="Reorder field"
+    title="Drag to reorder"
+  >
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="9" cy="6" r="1.5" />
+      <circle cx="15" cy="6" r="1.5" />
+      <circle cx="9" cy="12" r="1.5" />
+      <circle cx="15" cy="12" r="1.5" />
+      <circle cx="9" cy="18" r="1.5" />
+      <circle cx="15" cy="18" r="1.5" />
+    </svg>
+  </button>
+
+  <div class="field-row__name">
+    <input
+      class="field-row__name-input"
+      type="text"
+      [value]="field().name"
+      (input)="onNameInput($event)"
+      [attr.aria-label]="'Field ' + (index() + 1) + ' name'"
+      placeholder="Field name"
+      maxlength="100"
+    />
+    @if (nameError()) {
+      <span class="field-row__error" role="alert">{{ nameError() }}</span>
+    }
+  </div>
+
+  <tb-type-pill [value]="pillValue" (valueChange)="onPillChange($event)" />
+
+  <label class="field-row__required">
+    <input
+      type="checkbox"
+      [checked]="field().isRequired"
+      (change)="onRequiredToggle($event)"
+      [attr.aria-label]="'Required'"
+    />
+    <span>Required</span>
+  </label>
+
+  <button
+    type="button"
+    class="field-row__delete"
+    (click)="remove.emit()"
+    [attr.aria-label]="'Delete field ' + (field().name || index() + 1)"
+    title="Delete field"
+  >
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    </svg>
+  </button>
+</div>

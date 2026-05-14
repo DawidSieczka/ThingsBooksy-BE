@@ -5,8 +5,8 @@ import { SchemasPanelComponent } from './schemas-panel.component';
 import { SchemaSummary } from '../group-context.store';
 
 const MOCK_SCHEMAS: SchemaSummary[] = [
-  { id: 'schema-1', name: 'Equipment', description: 'Physical equipment', instanceCount: 5 },
-  { id: 'schema-2', name: 'Room', description: null, instanceCount: 2 },
+  { id: 'schema-1', name: 'Equipment', description: 'Physical equipment', propertyDefinitionsCount: 5, propertyDefinitions: [] },
+  { id: 'schema-2', name: 'Room', description: null, propertyDefinitionsCount: 2, propertyDefinitions: [] },
 ];
 
 describe('SchemasPanelComponent', () => {

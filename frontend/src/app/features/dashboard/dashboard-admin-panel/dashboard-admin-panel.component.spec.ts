@@ -2,15 +2,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { By } from '@angular/platform-browser';
 import { DashboardAdminPanelComponent } from './dashboard-admin-panel.component';
-import { GroupItem } from '../mock-data';
+import { GroupListItemDto } from '../../groups/services/groups-api.service';
 
-const MEMBER_GROUPS_STUB: readonly GroupItem[] = [
-  { id: 'g1', name: 'Engineering', memberCount: 10, initials: 'EN', accent: 'primary', isAdmin: false },
-  { id: 'g2', name: 'Product', memberCount: 5, initials: 'PR', accent: 'secondary', isAdmin: false },
+const MEMBER_GROUPS_STUB: readonly GroupListItemDto[] = [
+  { id: 'g1', name: 'Engineering', description: null, ownerId: 'other-1', createdAt: '2026-01-01T00:00:00Z', memberCount: 10 },
+  { id: 'g2', name: 'Product', description: null, ownerId: 'other-2', createdAt: '2026-01-02T00:00:00Z', memberCount: 5 },
 ];
 
-const ADMIN_GROUPS_STUB: readonly GroupItem[] = [
-  { id: 'g3', name: 'Design', memberCount: 4, initials: 'DS', accent: 'tertiary', isAdmin: true },
+const ADMIN_GROUPS_STUB: readonly GroupListItemDto[] = [
+  { id: 'g3', name: 'Design', description: null, ownerId: 'me', createdAt: '2026-01-03T00:00:00Z', memberCount: 4 },
 ];
 
 describe('DashboardAdminPanelComponent', () => {
@@ -74,7 +74,7 @@ describe('DashboardAdminPanelComponent', () => {
     fixture.detectChanges();
     const empty = fixture.debugElement.query(By.css('.admin__section:first-of-type .admin__empty'));
     expect(empty).toBeTruthy();
-    expect(empty.nativeElement.textContent.trim()).toBe('No groups yet.');
+    expect(empty.nativeElement.textContent.trim()).toMatch(/haven't (joined|created) any groups/);
   });
 
   it('should show empty message when adminGroups is empty', async () => {
@@ -82,6 +82,6 @@ describe('DashboardAdminPanelComponent', () => {
     fixture.detectChanges();
     const empty = fixture.debugElement.query(By.css('.admin__section:last-of-type .admin__empty'));
     expect(empty).toBeTruthy();
-    expect(empty.nativeElement.textContent.trim()).toBe('No groups yet.');
+    expect(empty.nativeElement.textContent.trim()).toMatch(/haven't (joined|created) any groups/);
   });
 });

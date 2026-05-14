@@ -13,12 +13,14 @@
       <h3 class="admin__section-title">Member of</h3>
       <tb-count-chip [count]="memberGroups().length" accent="secondary" />
     </header>
-    @if (memberGroups().length > 0) {
+    @if (loading()) {
+      <p class="admin__empty">Loading…</p>
+    } @else if (memberGroups().length > 0) {
       <ul class="admin__group-list" role="list">
         @for (group of memberGroups(); track group.id) {
           <li class="admin__group" role="listitem">
             <a class="admin__group-link" [routerLink]="['/groups', group.id]">
-              <tb-avatar [id]="group.id" [initials]="group.initials" size="sm" />
+              <tb-avatar [id]="group.id" [initials]="initialsOf(group.name)" size="sm" />
               <div class="admin__group-text">
                 <span class="admin__group-name">{{ group.name }}</span>
                 <span class="admin__group-meta">{{ group.memberCount }} members</span>
@@ -28,7 +30,7 @@
         }
       </ul>
     } @else {
-      <p class="admin__empty">No groups yet.</p>
+      <p class="admin__empty">You haven't joined any groups yet.</p>
     }
   </section>
 
@@ -37,12 +39,14 @@
       <h3 class="admin__section-title">My groups</h3>
       <tb-count-chip [count]="adminGroups().length" />
     </header>
-    @if (adminGroups().length > 0) {
+    @if (loading()) {
+      <p class="admin__empty">Loading…</p>
+    } @else if (adminGroups().length > 0) {
       <ul class="admin__group-list" role="list">
         @for (group of adminGroups(); track group.id) {
           <li class="admin__group" role="listitem">
             <a class="admin__group-link" [routerLink]="['/groups', group.id]">
-              <tb-avatar [id]="group.id" [initials]="group.initials" size="sm" />
+              <tb-avatar [id]="group.id" [initials]="initialsOf(group.name)" size="sm" />
               <div class="admin__group-text">
                 <span class="admin__group-name">{{ group.name }}</span>
                 <span class="admin__group-meta">{{ group.memberCount }} members</span>
@@ -53,7 +57,7 @@
         }
       </ul>
     } @else {
-      <p class="admin__empty">No groups yet.</p>
+      <p class="admin__empty">You haven't created any groups yet.</p>
     }
   </section>
 </section>

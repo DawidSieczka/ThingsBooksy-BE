@@ -1,12 +1,12 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, from, map } from 'rxjs';
-import { ManagementGroups } from '../../api/ManagementGroups';
+import { Observable } from 'rxjs';
+import { GroupsApiService } from './services/groups-api.service';
 
 @Injectable({ providedIn: 'root' })
 export class GroupsService {
-  private readonly mgClient = inject(ManagementGroups);
+  private readonly api = inject(GroupsApiService);
 
   deleteGroup(groupId: string): Observable<void> {
-    return from(this.mgClient.deleteManagementGroup(groupId)).pipe(map(() => void 0));
+    return this.api.deleteGroup(groupId);
   }
 }
