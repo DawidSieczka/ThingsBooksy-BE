@@ -9,14 +9,18 @@ using ThingsBooksy.Shared.Abstractions.Queries;
 
 namespace ThingsBooksy.Modules.Resources.Core.Features.GetResourceInstances;
 
-internal sealed class GetResourceInstancesQueryHandler : IQueryHandler<GetResourceInstancesQuery, IReadOnlyList<GetResourceInstancesQueryResult>>
+internal sealed class GetResourceInstancesQueryHandler : IQueryHandler<GetResourceInstancesQuery, GetResourceInstancesQueryResult>
 {
+    private const int MinTake = 1;
+    private const int MaxTake = 50;
+    private const int DefaultTake = 20;
+
     private readonly IGetResourceInstancesQueryDataProvider _dataProvider;
 
     public GetResourceInstancesQueryHandler(IGetResourceInstancesQueryDataProvider dataProvider)
         => _dataProvider = dataProvider;
 
-    public async Task<IReadOnlyList<GetResourceInstancesQueryResult>> HandleAsync(GetResourceInstancesQuery query, CancellationToken cancellationToken = default)
+    public async Task<GetResourceInstancesQueryResult> HandleAsync(GetResourceInstancesQuery query, CancellationToken cancellationToken = default)
     {
         Guid resolvedGroupId;
 
@@ -44,16 +48,19 @@ internal sealed class GetResourceInstancesQueryHandler : IQueryHandler<GetResour
         if (!isOwner && !isMember)
             throw new ResourcesForbiddenException("Access to this group is forbidden.");
 
-        var instances = await _dataProvider.GetInstancesAsync(query.ResourceTypeId, query.GroupId, query.IncludeDeleted, cancellationToken);
+        var take = Math.Clamp(query.Take == 0 ? DefaultTake : query.Take, MinTake, MaxTake);
+
+        var instances = await _dataProvider.GetInstancesAsync(
+            query.ResourceTypeId, query.GroupId, query.IncludeDeleted, query.AfterId, take, cancellationToken);
 
         if (instances.Count == 0)
-            return [];
+            return new GetResourceInstancesQueryResult([], null);
 
         var relevantTypeIds = instances.Select(i => i.ResourceTypeId).Distinct();
         var definitions = await _dataProvider.GetPropertyDefinitionsAsync(relevantTypeIds, cancellationToken);
         var defMap = definitions.ToDictionary(d => d.Id);
 
-        return instances
+        var items = instances
             .Select(instance =>
             {
                 var propertyValues = instance.PropertyValues
@@ -68,7 +75,7 @@ internal sealed class GetResourceInstancesQueryHandler : IQueryHandler<GetResour
                     })
                     .ToList();
 
-                return new GetResourceInstancesQueryResult(
+                return new ResourceInstanceRowDto(
                     instance.Id,
                     instance.ResourceTypeId,
                     instance.GroupId,
@@ -80,5 +87,9 @@ internal sealed class GetResourceInstancesQueryHandler : IQueryHandler<GetResour
                     propertyValues);
             })
             .ToList();
+
+        var nextCursor = items.Count == take ? items[^1].Id : (Guid?)null;
+
+        return new GetResourceInstancesQueryResult(items, nextCursor);
     }
 }

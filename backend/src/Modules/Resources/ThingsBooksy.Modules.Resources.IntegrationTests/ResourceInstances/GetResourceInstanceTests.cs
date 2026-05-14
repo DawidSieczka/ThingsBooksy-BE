@@ -29,6 +29,7 @@ public class GetResourceInstanceTests : IntegrationTestBase
     // Local response records — do not import from Core to keep test project isolated
     private record ResourceInstanceDtoResponse(Guid Id, Guid ResourceTypeId, Guid GroupId, string Name, string? Description, Guid OwnerId, DateTime CreatedAt, DateTime? DeletedAt, List<PropertyValueDtoResponse> PropertyValues);
     private record PropertyValueDtoResponse(Guid PropertyDefinitionId, string PropertyName, string DataType, string Value);
+    private record PagedInstancesResponse(List<ResourceInstanceDtoResponse> Items, Guid? NextCursor);
 
     public GetResourceInstanceTests(ThingsBooksyWebAppFactory factory) : base(factory)
     {
@@ -118,11 +119,11 @@ public class GetResourceInstanceTests : IntegrationTestBase
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var body = await response.Content.ReadFromJsonAsync<List<ResourceInstanceDtoResponse>>(JsonOptions);
+        var body = await response.Content.ReadFromJsonAsync<PagedInstancesResponse>(JsonOptions);
         Assert.NotNull(body);
-        Assert.Equal(2, body.Count);
+        Assert.Equal(2, body.Items.Count);
 
-        var names = body.ConvertAll(i => i.Name);
+        var names = body.Items.ConvertAll(i => i.Name);
         Assert.Contains("Desk A", names);
         Assert.Contains("Desk B", names);
     }
@@ -154,18 +155,18 @@ public class GetResourceInstanceTests : IntegrationTestBase
         // Act — default query (excludes deleted)
         var defaultResponse = await client.GetResourceInstancesAsync(resourceTypeId: typeId);
         Assert.Equal(HttpStatusCode.OK, defaultResponse.StatusCode);
-        var defaultBody = await defaultResponse.Content.ReadFromJsonAsync<List<ResourceInstanceDtoResponse>>(JsonOptions);
+        var defaultBody = await defaultResponse.Content.ReadFromJsonAsync<PagedInstancesResponse>(JsonOptions);
         Assert.NotNull(defaultBody);
-        Assert.Empty(defaultBody);
+        Assert.Empty(defaultBody.Items);
 
         // Act — with includeDeleted=true
         var withDeletedResponse = await client.GetResourceInstancesAsync(resourceTypeId: typeId, includeDeleted: true);
         Assert.Equal(HttpStatusCode.OK, withDeletedResponse.StatusCode);
-        var withDeletedBody = await withDeletedResponse.Content.ReadFromJsonAsync<List<ResourceInstanceDtoResponse>>(JsonOptions);
+        var withDeletedBody = await withDeletedResponse.Content.ReadFromJsonAsync<PagedInstancesResponse>(JsonOptions);
         Assert.NotNull(withDeletedBody);
-        Assert.Single(withDeletedBody);
-        Assert.Equal(instanceId, withDeletedBody[0].Id);
-        Assert.NotNull(withDeletedBody[0].DeletedAt);
+        Assert.Single(withDeletedBody.Items);
+        Assert.Equal(instanceId, withDeletedBody.Items[0].Id);
+        Assert.NotNull(withDeletedBody.Items[0].DeletedAt);
     }
 
     // -----------------------------------------------------------------------------------------
@@ -324,9 +325,9 @@ public class GetResourceInstanceTests : IntegrationTestBase
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var body = await response.Content.ReadFromJsonAsync<List<ResourceInstanceDtoResponse>>(JsonOptions);
+        var body = await response.Content.ReadFromJsonAsync<PagedInstancesResponse>(JsonOptions);
         Assert.NotNull(body);
-        Assert.Single(body);
-        Assert.Equal("Scanner A", body[0].Name);
+        Assert.Single(body.Items);
+        Assert.Equal("Scanner A", body.Items[0].Name);
     }
 }

@@ -266,14 +266,45 @@ public class ResourcesTestClient
     public Task<HttpResponseMessage> GetResourceInstanceAsync(Guid id)
         => _client.GetAsync($"/resources/instances/{id}");
 
-    public Task<HttpResponseMessage> GetResourceInstancesAsync(Guid? resourceTypeId = null, Guid? groupId = null, bool includeDeleted = false)
+    public Task<HttpResponseMessage> GetResourceInstancesAsync(
+        Guid? resourceTypeId = null,
+        Guid? groupId = null,
+        bool includeDeleted = false,
+        Guid? afterId = null,
+        int? take = null)
     {
         var qs = new List<string>();
         if (resourceTypeId.HasValue) qs.Add($"resourceTypeId={resourceTypeId}");
         if (groupId.HasValue) qs.Add($"groupId={groupId}");
         if (includeDeleted) qs.Add("includeDeleted=true");
+        if (afterId.HasValue) qs.Add($"afterId={afterId}");
+        if (take.HasValue) qs.Add($"take={take}");
         var query = qs.Count > 0 ? "?" + string.Join("&", qs) : "";
         return _client.GetAsync($"/resources/instances{query}");
+    }
+
+    // -----------------------------------------------------------------------------------------
+    // Resources DB helpers — query ResourcesDbContext for ResourceInstance list by type/group
+    // -----------------------------------------------------------------------------------------
+
+    internal async Task<List<ResourceInstance>> GetResourceInstancesByTypeFromDbAsync(Guid resourceTypeId)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
+        return await db.ResourceInstances
+            .IgnoreQueryFilters()
+            .Where(x => x.ResourceTypeId == resourceTypeId)
+            .ToListAsync();
+    }
+
+    internal async Task<List<ResourceInstance>> GetResourceInstancesByGroupFromDbAsync(Guid groupId)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
+        return await db.ResourceInstances
+            .IgnoreQueryFilters()
+            .Where(x => x.GroupId == groupId)
+            .ToListAsync();
     }
 
     // -----------------------------------------------------------------------------------------

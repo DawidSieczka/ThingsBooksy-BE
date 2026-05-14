@@ -177,11 +177,11 @@ public class CreateResourceTypeTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // Business rule — 400 Duplicate name within same group
+    // Business rule — 409 Conflict when name already exists in same group
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    public async Task CreateResourceType_WithDuplicateName_Returns400()
+    public async Task CreateResourceType_WithDuplicateName_Returns409()
     {
         // Arrange
         var owner = await _users.CreateUserAsync("creatert_dupname_owner@test.com");
@@ -195,8 +195,8 @@ public class CreateResourceTypeTests : IntegrationTestBase
         // Act — second creation with same name in same group
         var secondResponse = await client.CreateResourceTypeAsync(groupReadModel.Id, "Car");
 
-        // Assert — 400 Bad Request (name uniqueness violation)
-        Assert.Equal(HttpStatusCode.BadRequest, secondResponse.StatusCode);
+        // Assert — 409 Conflict (ResourceTypeNameAlreadyExistsException mapped to Conflict by ResourcesExceptionToResponseMapper)
+        Assert.Equal(HttpStatusCode.Conflict, secondResponse.StatusCode);
     }
 
     // -----------------------------------------------------------------------------------------

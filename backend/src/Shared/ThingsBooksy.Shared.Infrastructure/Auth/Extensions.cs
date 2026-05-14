@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using ThingsBooksy.Shared.Abstractions.Auth;
 using ThingsBooksy.Shared.Abstractions.Modules;
 using ThingsBooksy.Shared.Infrastructure.Auth.JWT;
 
@@ -148,6 +151,30 @@ public static class Extensions
                 {
                     o.Challenge = options.Jwt.Challenge;
                 }
+
+                o.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        var jti = context.Principal?.FindFirstValue(JwtRegisteredClaimNames.Jti);
+                        if (string.IsNullOrWhiteSpace(jti))
+                        {
+                            return;
+                        }
+
+                        var checker = context.HttpContext.RequestServices
+                            .GetService<IRevokedTokenChecker>();
+                        if (checker is null)
+                        {
+                            return;
+                        }
+
+                        if (await checker.IsRevokedAsync(jti, context.HttpContext.RequestAborted))
+                        {
+                            context.Fail("Token has been revoked.");
+                        }
+                    }
+                };
             });
 
         if (securityKey is not null)

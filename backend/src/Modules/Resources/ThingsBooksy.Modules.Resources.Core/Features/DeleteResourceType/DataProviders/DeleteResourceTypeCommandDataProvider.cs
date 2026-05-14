@@ -21,8 +21,14 @@ internal sealed class DeleteResourceTypeCommandDataProvider : IDeleteResourceTyp
     public Task<GroupReadModel?> GetGroupAsync(Guid groupId, CancellationToken ct)
         => _dbContext.GroupReadModels.FirstOrDefaultAsync(g => g.Id == groupId, ct);
 
-    public Task<bool> HasInstancesAsync(Guid typeId, CancellationToken ct)
-        => _dbContext.ResourceInstances.IgnoreQueryFilters().AnyAsync(i => i.ResourceTypeId == typeId, ct);
+    public Task SoftDeleteInstancesAsync(Guid typeId, DateTime now, CancellationToken ct)
+        => _dbContext.ResourceInstances
+            .IgnoreQueryFilters()
+            .Where(i => i.ResourceTypeId == typeId && i.DeletedAt == null)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(x => x.DeletedAt, now)
+                .SetProperty(x => x.UpdatedAt, now),
+                ct);
 
     public void RemoveResourceType(ResourceType resourceType)
         => _dbContext.ResourceTypes.Remove(resourceType);

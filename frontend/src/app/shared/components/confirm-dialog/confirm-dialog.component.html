@@ -1,0 +1,38 @@
+@if (state(); as dialogState) {
+  <tb-modal
+    [open]="isOpen()"
+    [title]="dialogState.title"
+    (close)="onCancel()"
+  >
+    <div
+      class="confirm-dialog"
+      aria-describedby="confirm-dialog-message"
+    >
+      <p id="confirm-dialog-message" class="confirm-dialog__message">
+        {{ dialogState.message }}
+      </p>
+
+      <div class="confirm-dialog__footer">
+        <button
+          type="button"
+          class="confirm-dialog__btn confirm-dialog__btn--cancel"
+          (click)="onCancel()"
+          [attr.aria-label]="dialogState.cancelLabel"
+        >
+          {{ dialogState.cancelLabel }}
+        </button>
+
+        <button
+          #confirmBtn
+          type="button"
+          class="confirm-dialog__btn confirm-dialog__btn--confirm"
+          [class.confirm-dialog__btn--danger]="dialogState.danger"
+          (click)="onConfirm()"
+          [attr.aria-label]="dialogState.confirmLabel"
+        >
+          {{ dialogState.confirmLabel }}
+        </button>
+      </div>
+    </div>
+  </tb-modal>
+}

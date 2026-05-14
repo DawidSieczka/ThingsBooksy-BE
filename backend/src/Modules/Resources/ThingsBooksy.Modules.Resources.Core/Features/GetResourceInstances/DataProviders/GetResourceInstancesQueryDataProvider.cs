@@ -25,7 +25,7 @@ internal sealed class GetResourceInstancesQueryDataProvider : IGetResourceInstan
     public Task<ResourceType?> GetResourceTypeAsync(Guid resourceTypeId, CancellationToken ct)
         => _dbContext.ResourceTypes.FirstOrDefaultAsync(t => t.Id == resourceTypeId, ct);
 
-    public async Task<List<ResourceInstance>> GetInstancesAsync(Guid? resourceTypeId, Guid? groupId, bool includeDeleted, CancellationToken ct)
+    public async Task<List<ResourceInstance>> GetInstancesAsync(Guid? resourceTypeId, Guid? groupId, bool includeDeleted, Guid? afterId, int take, CancellationToken ct)
     {
         IQueryable<ResourceInstance> query = includeDeleted
             ? _dbContext.ResourceInstances.IgnoreQueryFilters().Include(x => x.PropertyValues)
@@ -37,7 +37,10 @@ internal sealed class GetResourceInstancesQueryDataProvider : IGetResourceInstan
         if (groupId.HasValue)
             query = query.Where(x => x.GroupId == groupId.Value);
 
-        return await query.ToListAsync(ct);
+        if (afterId.HasValue)
+            query = query.Where(x => x.Id > afterId.Value);
+
+        return await query.OrderBy(x => x.Id).Take(take).ToListAsync(ct);
     }
 
     public Task<List<ResourcePropertyDefinition>> GetPropertyDefinitionsAsync(IEnumerable<Guid> resourceTypeIds, CancellationToken ct)

@@ -77,6 +77,21 @@ export class Users<
   /**
    * No description
    *
+   * @tags Account
+   * @name SignOut
+   * @request POST:/users/logout
+   * @secure
+   */
+  signOut = (params: RequestParams = {}) =>
+    this.request<void, any>({
+      path: `/users/logout`,
+      method: "POST",
+      secure: true,
+      ...params,
+    });
+  /**
+   * No description
+   *
    * @tags Users
    * @name GetUser
    * @request GET:/users/{id}

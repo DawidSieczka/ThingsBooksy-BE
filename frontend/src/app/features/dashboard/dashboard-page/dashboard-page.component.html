@@ -1,0 +1,34 @@
+<tb-animated-background />
+
+<tb-dashboard-header
+  [userName]="displayName()"
+  [userInitials]="initials()"
+  (settingsClicked)="onSettings()"
+  (logoutClicked)="onLogout()"
+/>
+
+<main class="dashboard-page">
+  <tb-dashboard-welcome-bar
+    [userName]="displayName()"
+    [date]="today"
+  />
+
+  <div class="dashboard-page__panels">
+    <tb-dashboard-history-panel
+      [rows]="historyRows"
+      (viewAllClicked)="onViewAll()"
+    />
+    <tb-dashboard-admin-panel
+      [memberGroups]="memberGroups()"
+      [adminGroups]="ownedGroups()"
+      [loading]="groupsLoading()"
+      (createGroupClicked)="onCreateGroup()"
+    />
+  </div>
+</main>
+
+<tb-create-group-modal
+  [open]="modalOpen()"
+  (close)="onCloseModal()"
+  (submitted)="onGroupSubmitted($event)"
+/>

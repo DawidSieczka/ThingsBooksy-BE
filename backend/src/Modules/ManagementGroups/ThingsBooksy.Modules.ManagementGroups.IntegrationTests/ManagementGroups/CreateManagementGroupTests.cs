@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using ThingsBooksy.Modules.ManagementGroups.IntegrationTests.Clients;
 using ThingsBooksy.Shared.IntegrationTests;
@@ -44,16 +45,53 @@ public class CreateManagementGroupTests : IntegrationTestBase
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    // T032 — duplicate name for same owner returns 409 with GROUP_NAME_TAKEN code
     [Fact]
-    public async Task CreateGroup_WithDuplicateName_Returns400()
+    public async Task CreateManagementGroup_DuplicateNameSameOwner_Returns409()
     {
-        var owner = await _users.CreateUserAsync("create_dup@test.com");
+        var owner = await _users.CreateUserAsync("create_dup409@test.com");
         var groups = new ManagementGroupsTestClient(Factory, owner);
-        await groups.CreateGroupAndGetIdAsync("Duplicate Name");
+        await groups.CreateGroupAndGetIdAsync("Taken Name");
 
-        var response = await groups.CreateGroupAsync("Duplicate Name");
+        var response = await groups.CreateGroupAsync("Taken Name");
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var body = await response.Content.ReadFromJsonAsync<ErrorBody>(options);
+        Assert.NotNull(body);
+        Assert.Equal("GROUP_NAME_TAKEN", body.Code);
+    }
+
+    // T033 — same name is allowed when it belongs to a different owner
+    [Fact]
+    public async Task CreateManagementGroup_DuplicateNameDifferentOwner_Succeeds()
+    {
+        var owner1 = await _users.CreateUserAsync("create_dup_owner1@test.com");
+        var owner2 = await _users.CreateUserAsync("create_dup_owner2@test.com");
+        var groups1 = new ManagementGroupsTestClient(Factory, owner1);
+        var groups2 = new ManagementGroupsTestClient(Factory, owner2);
+
+        await groups1.CreateGroupAndGetIdAsync("Shared Name");
+
+        var response = await groups2.CreateGroupAsync("Shared Name");
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
+
+    // T034 — name of soft-deleted group is available again for the same owner
+    [Fact]
+    public async Task CreateManagementGroup_NameReusedAfterSoftDelete_Succeeds()
+    {
+        var owner = await _users.CreateUserAsync("create_reuse@test.com");
+        var groups = new ManagementGroupsTestClient(Factory, owner);
+
+        var groupId = await groups.CreateGroupAndGetIdAsync("Recyclable Name");
+        await groups.DeleteGroupAsync(groupId);
+
+        var response = await groups.CreateGroupAsync("Recyclable Name");
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
     [Fact]
@@ -66,4 +104,7 @@ public class CreateManagementGroupTests : IntegrationTestBase
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    // DTO used only within this test file to deserialise the 409 body
+    private sealed record ErrorBody(string Code, string Message);
 }

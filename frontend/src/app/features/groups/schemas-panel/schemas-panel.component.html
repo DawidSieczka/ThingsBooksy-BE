@@ -1,0 +1,95 @@
+<section class="schemas-panel" aria-labelledby="schemas-panel-heading">
+  <header class="schemas-panel__header">
+    <h2 id="schemas-panel-heading" class="schemas-panel__title">Schemas</h2>
+    <tb-count-chip [count]="schemas().length" aria-label="Schema count" />
+    <span class="schemas-panel__spacer" aria-hidden="true"></span>
+    @if (isOwner()) {
+      <button
+        type="button"
+        class="schemas-panel__add-btn"
+        aria-label="Add schema"
+        (click)="addSchema.emit()"
+      >
+        <tb-icon-plus [size]="14" />
+        Add schema
+      </button>
+    }
+  </header>
+
+  @if (schemas().length === 0) {
+    <div class="schemas-panel__empty" role="status">
+      <p class="schemas-panel__empty-title">No schemas yet</p>
+      <p class="schemas-panel__empty-subtitle">Create the first schema to define a resource type.</p>
+      @if (isOwner()) {
+        <button
+          type="button"
+          class="schemas-panel__empty-cta"
+          aria-label="Add schema"
+          (click)="addSchema.emit()"
+        >
+          <tb-icon-plus [size]="14" />
+          Add schema
+        </button>
+      }
+    </div>
+  } @else {
+    <ul class="schemas-panel__list" role="list">
+      @for (schema of schemas(); track schema.id) {
+        <li class="schemas-panel__item">
+          <div class="schemas-panel__row-wrapper">
+            <button
+              type="button"
+              class="schemas-panel__row"
+              [attr.aria-label]="'Open schema ' + schema.name"
+              (click)="selectSchema.emit(schema.id)"
+            >
+              <span class="schemas-panel__name">{{ schema.name }}</span>
+              <div class="schemas-panel__row-end">
+                <tb-count-chip [count]="schema.propertyDefinitionsCount" accent="secondary" />
+                <tb-icon-chevron [size]="12" direction="right" />
+              </div>
+            </button>
+            @if (isOwner()) {
+              <div class="schemas-panel__row-actions">
+                <button
+                  type="button"
+                  class="schemas-panel__row-action schemas-panel__row-action--add"
+                  [attr.aria-label]="'Add resource of type ' + schema.name"
+                  title="Add resource"
+                  (click)="addResourceForSchema.emit(schema.id)"
+                >
+                  <tb-icon-plus [size]="12" />
+                </button>
+                <button
+                  type="button"
+                  class="schemas-panel__row-action schemas-panel__row-action--delete"
+                  [attr.aria-label]="'Delete schema ' + schema.name"
+                  title="Delete schema"
+                  (click)="deleteSchema.emit(schema)"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6" />
+                    <path d="M14 11v6" />
+                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                  </svg>
+                </button>
+              </div>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

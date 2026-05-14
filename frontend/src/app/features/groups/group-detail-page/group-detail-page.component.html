@@ -1,0 +1,101 @@
+<tb-animated-background />
+
+<nav class="group-detail-page__breadcrumb" aria-label="Breadcrumb">
+  <ol class="group-detail-page__breadcrumb-list">
+    <li class="group-detail-page__breadcrumb-item">
+      <a class="group-detail-page__breadcrumb-link" routerLink="/dashboard">Dashboard</a>
+    </li>
+    <li class="group-detail-page__breadcrumb-separator" aria-hidden="true">/</li>
+    <li class="group-detail-page__breadcrumb-item group-detail-page__breadcrumb-item--current" aria-current="page">
+      {{ groupName() || 'Group' }}
+    </li>
+  </ol>
+</nav>
+
+<main
+  class="group-detail-page__main"
+  aria-labelledby="group-heading"
+>
+  @if (initialLoading()) {
+    <div class="group-detail-page__skeleton" role="status" aria-label="Loading group details">
+      <div class="group-detail-page__skeleton-header"></div>
+      <div class="group-detail-page__skeleton-panel"></div>
+      <div class="group-detail-page__skeleton-panel"></div>
+      <div class="group-detail-page__skeleton-panel"></div>
+    </div>
+  } @else if (initialError()) {
+    <div class="group-detail-page__error" role="alert">
+      <p class="group-detail-page__error-message">{{ initialError() }}</p>
+      <button
+        class="group-detail-page__retry-btn"
+        type="button"
+        (click)="onRetry()"
+      >
+        Retry
+      </button>
+    </div>
+  } @else {
+    <div class="group-detail-page__panels">
+      <div class="group-detail-page__panel group-detail-page__panel--0">
+        <tb-group-header-panel
+          [group]="group()"
+          [schemaCount]="schemas().length"
+          [resourceCount]="resources().items.length"
+          [isOwner]="store.isOwner()"
+          (edit)="onEdit()"
+          (delete)="onDelete()"
+        />
+      </div>
+
+      <div class="group-detail-page__panel group-detail-page__panel--1">
+        <tb-schemas-panel
+          [schemas]="schemas()"
+          [isOwner]="store.isOwner()"
+          (addSchema)="onAddSchema()"
+          (selectSchema)="onSelectSchema($event)"
+          (addResourceForSchema)="onAddResourceForSchema($event)"
+          (deleteSchema)="onDeleteSchema($event)"
+        />
+      </div>
+
+      <div class="group-detail-page__panel group-detail-page__panel--2">
+        <tb-resources-panel
+          [resources]="resources().items"
+          [schemas]="schemas()"
+          [nextCursor]="resources().nextCursor"
+          [loadingMore]="resources().loading"
+          [isOwner]="store.isOwner()"
+          (loadMore)="store.loadMoreResources(groupId()!)"
+          (addResource)="onAddResource()"
+        />
+      </div>
+
+      <div class="group-detail-page__panel group-detail-page__panel--3">
+        <tb-members-panel
+          [members]="members().items"
+          [nextCursor]="members().nextCursor"
+          [loadingMore]="members().loading"
+          (loadMore)="store.loadMoreMembers(groupId()!)"
+        />
+      </div>
+    </div>
+  }
+</main>
+
+<tb-create-group-modal
+  [open]="editOpen()"
+  [mode]="'edit'"
+  [initialValue]="group() ? { id: group()!.id!, name: group()!.name ?? '', description: group()!.description ?? null } : null"
+  (close)="onEditModalClose()"
+  (submitted)="onEditSubmitted()"
+/>
+
+@if (groupId()) {
+  <tb-create-resource-modal
+    [open]="resourceModalOpen()"
+    [groupId]="groupId()!"
+    [preselectedSchemaId]="resourceModalSchemaId()"
+    (close)="onResourceModalClose()"
+    (created)="onResourceCreated($event)"
+  />
+}

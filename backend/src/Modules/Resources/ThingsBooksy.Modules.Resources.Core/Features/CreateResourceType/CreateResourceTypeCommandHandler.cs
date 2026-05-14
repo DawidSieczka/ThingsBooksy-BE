@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using ThingsBooksy.Modules.Resources.Core.Domain;
@@ -31,10 +32,11 @@ internal sealed class CreateResourceTypeCommandHandler : ICommandHandler<CreateR
         if (group.OwnerId != command.CallerId)
             throw new ResourcesForbiddenException("Only the group owner may create a resource type.");
 
-        var nameExists = await _dataProvider.NameExistsAsync(command.GroupId, command.Name, cancellationToken);
+        var normalizedName = command.Name.Trim();
+        var nameExists = await _dataProvider.ExistsByGroupAndNameAsync(command.GroupId, normalizedName, excludeId: null, cancellationToken);
 
         if (nameExists)
-            throw new ResourcesDomainException($"Resource type name '{command.Name}' is already taken within this group.");
+            throw new ResourceTypeNameAlreadyExistsException(command.GroupId, normalizedName);
 
         var resourceType = ResourceType.Create(command, _clock.CurrentDate());
 

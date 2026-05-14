@@ -10,7 +10,7 @@ namespace ThingsBooksy.Modules.Resources.Core.Features.CreateResourceType;
 internal interface ICreateResourceTypeCommandDataProvider : IDataProvider
 {
     Task<GroupReadModel?> GetGroupAsync(Guid groupId, CancellationToken ct);
-    Task<bool> NameExistsAsync(Guid groupId, string name, CancellationToken ct);
+    Task<bool> ExistsByGroupAndNameAsync(Guid groupId, string normalizedName, Guid? excludeId, CancellationToken ct);
     Task AddResourceTypeAsync(ResourceType resourceType, CancellationToken ct);
     Task AddPropertyDefinitionAsync(ResourcePropertyDefinition definition, CancellationToken ct);
     Task SaveChangesAsync(CancellationToken ct);

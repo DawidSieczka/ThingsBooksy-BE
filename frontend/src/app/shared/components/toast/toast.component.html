@@ -1,0 +1,27 @@
+<div
+  class="toast-region"
+  role="region"
+  aria-live="polite"
+  aria-atomic="false"
+>
+  @for (toast of toasts(); track toast.id) {
+    <div
+      class="toast toast--{{ toast.kind }}"
+      role="status"
+      [attr.aria-label]="kindLabel(toast)"
+    >
+      <div class="toast__accent"></div>
+      <div class="toast__body">
+        <span class="toast__message">{{ toast.message }}</span>
+        <button
+          type="button"
+          class="toast__close"
+          aria-label="Dismiss notification"
+          (click)="dismiss(toast.id)"
+        >
+          <tb-icon-close [size]="14" />
+        </button>
+      </div>
+    </div>
+  }
+</div>

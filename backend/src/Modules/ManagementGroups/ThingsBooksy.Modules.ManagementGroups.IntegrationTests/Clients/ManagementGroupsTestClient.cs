@@ -63,6 +63,18 @@ public class ManagementGroupsTestClient
     public Task<HttpResponseMessage> RemoveMemberAsync(Guid groupId, Guid userId)
         => _client.DeleteAsync($"/management-groups/{groupId}/members/{userId}");
 
+    public Task<HttpResponseMessage> IsGroupNameAvailableAsync(string name)
+        => _client.GetAsync($"/management-groups/name-available?name={Uri.EscapeDataString(name)}");
+
+    public Task<HttpResponseMessage> GetGroupMembersAsync(Guid groupId, Guid? afterId = null, int? take = null)
+    {
+        var qs = new List<string>();
+        if (afterId.HasValue) qs.Add($"afterId={afterId}");
+        if (take.HasValue) qs.Add($"take={take}");
+        var query = qs.Count > 0 ? "?" + string.Join("&", qs) : "";
+        return _client.GetAsync($"/management-groups/{groupId}/members{query}");
+    }
+
     // --- DB methods (Assert) ---
 
     internal async Task<ManagementGroup?> GetGroupFromDbAsync(Guid id)
@@ -107,6 +119,41 @@ public class ManagementGroupsTestClient
 
     internal async Task<bool> ResourcesGroupReadModelAbsentAsync(Guid groupId)
         => !await ResourcesGroupReadModelExistsAsync(groupId);
+
+    internal async Task<bool> ResourcesAllResourceTypesDeletedAsync(Guid groupId)
+    {
+        await using var connection = new NpgsqlConnection(GetConnectionString());
+        await connection.OpenAsync();
+        await using var cmd = new NpgsqlCommand(
+            """SELECT COUNT(1) FROM resources.resource_types WHERE "GroupId" = @groupId""",
+            connection);
+        cmd.Parameters.AddWithValue("groupId", groupId);
+        var count = (long)(await cmd.ExecuteScalarAsync())!;
+        return count == 0;
+    }
+
+    internal async Task<bool> ResourcesAllResourceInstancesSoftDeletedAsync(Guid groupId)
+    {
+        await using var connection = new NpgsqlConnection(GetConnectionString());
+        await connection.OpenAsync();
+        await using var cmd = new NpgsqlCommand(
+            """SELECT COUNT(1) FROM resources.resource_instances WHERE "GroupId" = @groupId AND "DeletedAt" IS NULL""",
+            connection);
+        cmd.Parameters.AddWithValue("groupId", groupId);
+        var count = (long)(await cmd.ExecuteScalarAsync())!;
+        return count == 0;
+    }
+
+    internal async Task<int> ResourcesResourceInstanceCountAsync(Guid groupId)
+    {
+        await using var connection = new NpgsqlConnection(GetConnectionString());
+        await connection.OpenAsync();
+        await using var cmd = new NpgsqlCommand(
+            """SELECT COUNT(1) FROM resources.resource_instances WHERE "GroupId" = @groupId""",
+            connection);
+        cmd.Parameters.AddWithValue("groupId", groupId);
+        return (int)(long)(await cmd.ExecuteScalarAsync())!;
+    }
 
     internal async Task<bool> ResourcesGroupMemberReadModelExistsAsync(Guid groupId, Guid userId)
     {

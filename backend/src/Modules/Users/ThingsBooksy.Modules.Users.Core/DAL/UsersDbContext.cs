@@ -9,6 +9,7 @@ internal class UsersDbContext : DbContext
     public DbSet<InboxMessage> Inbox { get; set; } = null!;
     public DbSet<OutboxMessage> Outbox { get; set; } = null!;
     public DbSet<Role> Roles { get; set; } = null!;
+    public DbSet<TokenRevocation> TokenRevocations { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
 
     public UsersDbContext(DbContextOptions<UsersDbContext> options) : base(options)

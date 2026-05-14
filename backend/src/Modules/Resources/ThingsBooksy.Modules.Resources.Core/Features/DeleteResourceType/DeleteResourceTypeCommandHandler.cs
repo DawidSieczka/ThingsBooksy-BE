@@ -1,17 +1,21 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using ThingsBooksy.Modules.Resources.Core.Exceptions;
 using ThingsBooksy.Shared.Abstractions.Commands;
+using ThingsBooksy.Shared.Abstractions.Time;
 
 namespace ThingsBooksy.Modules.Resources.Core.Features.DeleteResourceType;
 
 internal sealed class DeleteResourceTypeCommandHandler : ICommandHandler<DeleteResourceTypeCommand>
 {
     private readonly IDeleteResourceTypeCommandDataProvider _dataProvider;
+    private readonly IClock _clock;
 
-    public DeleteResourceTypeCommandHandler(IDeleteResourceTypeCommandDataProvider dataProvider)
+    public DeleteResourceTypeCommandHandler(IDeleteResourceTypeCommandDataProvider dataProvider, IClock clock)
     {
         _dataProvider = dataProvider;
+        _clock = clock;
     }
 
     public async Task HandleAsync(DeleteResourceTypeCommand command, CancellationToken cancellationToken = default)
@@ -26,11 +30,11 @@ internal sealed class DeleteResourceTypeCommandHandler : ICommandHandler<DeleteR
         if (group is null || group.OwnerId != command.RequesterId)
             throw new ResourcesForbiddenException("Only the group owner may delete a resource type.");
 
-        var hasInstances = await _dataProvider.HasInstancesAsync(command.TypeId, cancellationToken);
+        // Cascade soft-delete all instances of this type before hard-deleting the type.
+        // ExecuteUpdateAsync is a bulk operation; zero rows affected is a no-op (idempotent).
+        await _dataProvider.SoftDeleteInstancesAsync(command.TypeId, _clock.CurrentDate(), cancellationToken);
 
-        if (hasInstances)
-            throw new ResourcesDomainException("Cannot delete a resource type that has instances.");
-
+        // Hard-delete the resource type. EF cascade removes ResourcePropertyDefinitions.
         _dataProvider.RemoveResourceType(resourceType);
         await _dataProvider.SaveChangesAsync(cancellationToken);
     }

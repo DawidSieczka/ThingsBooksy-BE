@@ -38,6 +38,36 @@ namespace ThingsBooksy.Modules.Users.Migrations.Migrations
                     b.ToTable("Roles", "users");
                 });
 
+            modelBuilder.Entity("ThingsBooksy.Modules.Users.Core.Entities.TokenRevocation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Jti")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime>("RevokedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Jti")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "RevokedAt");
+
+                    b.ToTable("token_revocations", "users");
+                });
+
             modelBuilder.Entity("ThingsBooksy.Modules.Users.Core.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")

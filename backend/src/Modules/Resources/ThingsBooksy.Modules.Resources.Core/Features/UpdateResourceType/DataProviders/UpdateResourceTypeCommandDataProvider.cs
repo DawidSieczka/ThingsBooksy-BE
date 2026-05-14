@@ -21,6 +21,11 @@ internal sealed class UpdateResourceTypeCommandDataProvider : IUpdateResourceTyp
             .Include(t => t.PropertyDefinitions)
             .FirstOrDefaultAsync(t => t.Id == typeId, ct);
 
+    public Task<bool> ExistsByGroupAndNameAsync(Guid groupId, string normalizedName, Guid? excludeId, CancellationToken ct)
+        => _dbContext.ResourceTypes.IgnoreQueryFilters().AnyAsync(
+            t => t.GroupId == groupId && t.Name == normalizedName && (excludeId == null || t.Id != excludeId.Value) && t.DeletedAt == null,
+            ct);
+
     public Task<GroupReadModel?> GetGroupAsync(Guid groupId, CancellationToken ct)
         => _dbContext.GroupReadModels.FirstOrDefaultAsync(g => g.Id == groupId, ct);
 

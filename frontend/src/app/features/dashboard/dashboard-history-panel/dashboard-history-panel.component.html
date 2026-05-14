@@ -1,0 +1,36 @@
+<section class="panel history">
+  <header class="history__head">
+    <div class="history__title-wrap">
+      <h2 class="history__title">Recent reservations</h2>
+      <tb-count-chip [count]="rows().length" />
+    </div>
+    <button type="button" class="history__view-all" (click)="viewAllClicked.emit()">View all</button>
+  </header>
+
+  @if (rows().length > 0) {
+    <div class="history__table" role="table">
+      <div class="history__head-row" role="row">
+        <span role="columnheader">Resource</span>
+        <span class="history__col-time" role="columnheader">Time</span>
+        <span class="history__col-amount" role="columnheader">Amount</span>
+        <span role="columnheader">Status</span>
+      </div>
+      @for (row of rows(); track row.id) {
+        <div class="history__row" role="row">
+          <div class="history__resource">
+            <span class="history__dot" [class]="'history__dot--' + row.dot" aria-hidden="true"></span>
+            <div class="history__resource-text">
+              <span class="history__resource-name">{{ row.resourceName }}</span>
+              <span class="history__resource-meta">{{ row.groupName }} · {{ row.date | date: 'MMM d, y' }}</span>
+            </div>
+          </div>
+          <span class="history__time history__col-time">{{ row.time }}</span>
+          <span class="history__amount history__col-amount">{{ row.amount }}</span>
+          <tb-status-badge [status]="row.status" />
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="history__empty">No recent reservations.</p>
+  }
+</section>

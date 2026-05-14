@@ -37,8 +37,10 @@ internal sealed class CreateManagementGroupCommandHandler : ICommandHandler<Crea
         if (string.IsNullOrWhiteSpace(command.Name))
             throw new ManagementGroupsDomainException("Group name cannot be empty.");
 
-        if (await _provider.NameExistsAsync(command.Name, cancellationToken))
-            throw new ManagementGroupsDomainException($"Group name '{command.Name}' is already taken.");
+        var trimmedName = command.Name.Trim();
+
+        if (await _provider.OwnerNameExistsAsync(command.OwnerId, trimmedName, cancellationToken))
+            throw new GroupNameAlreadyTakenException(command.Name);
 
         var group = ManagementGroup.Create(command, _clock.CurrentDate());
         await _provider.AddAsync(group, cancellationToken);

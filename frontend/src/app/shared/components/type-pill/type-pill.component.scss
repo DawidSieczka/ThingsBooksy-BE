@@ -1,0 +1,89 @@
+:host {
+  display: inline-flex;
+}
+
+.type-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-full);
+  padding: 6px 12px;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: lowercase;
+  transition: filter 0.15s var(--transition-fast);
+  cursor: pointer;
+
+  // Reset button defaults
+  border: none;
+  outline: none;
+  appearance: none;
+  background: transparent;
+  text-decoration: none;
+  line-height: 1;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+  }
+
+  // ── Value variants ────────────────────────────────────────────────────────
+
+  &--text {
+    background: var(--color-chip-secondary-bg);
+    border: 1px solid var(--color-chip-secondary-border);
+    color: var(--color-accent-secondary);
+
+    .type-pill__dot {
+      background-color: var(--color-accent-secondary);
+    }
+  }
+
+  &--number {
+    background: var(--color-chip-primary-bg);
+    border: 1px solid var(--color-chip-primary-border);
+    color: var(--color-accent-primary);
+
+    .type-pill__dot {
+      background-color: var(--color-accent-primary);
+    }
+  }
+
+  &--boolean {
+    background: var(--color-chip-tertiary-bg);
+    border: 1px solid var(--color-chip-tertiary-border);
+    color: var(--color-accent-tertiary);
+
+    .type-pill__dot {
+      background-color: var(--color-accent-tertiary);
+    }
+  }
+
+  // ── Hover (interactive only — span renders without cursor) ────────────────
+
+  &:is(button):hover {
+    filter: brightness(1.15);
+  }
+
+  // ── Dot ──────────────────────────────────────────────────────────────────
+
+  &__dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  // ── Label ─────────────────────────────────────────────────────────────────
+
+  &__label {
+    white-space: nowrap;
+  }
+}
+
+// Readonly span — use default cursor
+span.type-pill {
+  cursor: default;
+}

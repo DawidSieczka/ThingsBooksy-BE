@@ -14,12 +14,69 @@ import {
   ThingsBooksyModulesManagementGroupsApiRequestsAddGroupMemberRequest,
   ThingsBooksyModulesManagementGroupsApiRequestsCreateManagementGroupRequest,
   ThingsBooksyModulesManagementGroupsApiRequestsUpdateManagementGroupRequest,
+  ThingsBooksyModulesManagementGroupsCoreFeaturesGetGroupMembersGetGroupMembersQueryResult,
+  ThingsBooksyModulesManagementGroupsCoreFeaturesGetManagementGroupGetManagementGroupQueryResult,
+  ThingsBooksyModulesManagementGroupsCoreFeaturesIsGroupNameAvailableIsGroupNameAvailableQueryResult,
 } from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from "./http-client";
 
 export class ManagementGroups<
   SecurityDataType = unknown,
 > extends HttpClient<SecurityDataType> {
+  /**
+   * @summary Check whether a group name is available for the authenticated user.
+   *
+   * @tags ManagementGroups
+   * @name IsGroupNameAvailable
+   * @request GET:/management-groups/name-available
+   * @secure
+   */
+  isGroupNameAvailable = (
+    query: {
+      name?: string | null;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      ThingsBooksyModulesManagementGroupsCoreFeaturesIsGroupNameAvailableIsGroupNameAvailableQueryResult,
+      any
+    >({
+      path: `/management-groups/name-available`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @summary Get paginated list of members for a management group.
+   *
+   * @tags ManagementGroups
+   * @name GetGroupMembers
+   * @request GET:/management-groups/{id}/members
+   * @secure
+   */
+  getGroupMembers = (
+    id: string,
+    query?: {
+      /** @format uuid */
+      afterId?: string | null;
+      /** @format int32 */
+      take?: number | null;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      ThingsBooksyModulesManagementGroupsCoreFeaturesGetGroupMembersGetGroupMembersQueryResult,
+      any
+    >({
+      path: `/management-groups/${id}/members`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
   /**
    * No description
    *
@@ -64,10 +121,14 @@ export class ManagementGroups<
    * @secure
    */
   getManagementGroup = (id: string, params: RequestParams = {}) =>
-    this.request<void, any>({
+    this.request<
+      ThingsBooksyModulesManagementGroupsCoreFeaturesGetManagementGroupGetManagementGroupQueryResult,
+      any
+    >({
       path: `/management-groups/${id}`,
       method: "GET",
       secure: true,
+      format: "json",
       ...params,
     });
   /**

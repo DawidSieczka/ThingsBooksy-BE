@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -8,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ThingsBooksy.Modules.Users.Api.Requests;
 using ThingsBooksy.Modules.Users.Core;
 using ThingsBooksy.Modules.Users.Core.Features.GetUser;
+using ThingsBooksy.Modules.Users.Core.Features.Logout;
 using ThingsBooksy.Modules.Users.Core.Features.SignIn;
 using ThingsBooksy.Modules.Users.Core.Features.SignUp;
 using ThingsBooksy.Modules.Users.Core.Services;
@@ -61,6 +64,26 @@ internal sealed class UsersModule : IModule
             var jwt = storage.Get();
             return Results.Ok(jwt);
         }).WithTags("Account").WithName("Sign in");
+
+        endpoints.MapPost("/users/logout", async (IDispatcher dispatcher, HttpContext context) =>
+        {
+            var jti = context.User.FindFirstValue(JwtRegisteredClaimNames.Jti);
+            var expClaim = context.User.FindFirstValue(JwtRegisteredClaimNames.Exp);
+            var userId = GetUserId(context);
+
+            if (string.IsNullOrWhiteSpace(jti) || userId == Guid.Empty)
+            {
+                return Results.Unauthorized();
+            }
+
+            var expiresAt = long.TryParse(expClaim, out var expSeconds)
+                ? DateTimeOffset.FromUnixTimeSeconds(expSeconds).UtcDateTime
+                : DateTime.UtcNow.AddDays(7);
+
+            var command = new LogoutCommand(jti, userId, expiresAt);
+            await dispatcher.SendAsync(command);
+            return Results.Ok();
+        }).RequireAuthorization().WithTags("Account").WithName("Sign out");
     }
 
     private static Guid GetUserId(HttpContext context)

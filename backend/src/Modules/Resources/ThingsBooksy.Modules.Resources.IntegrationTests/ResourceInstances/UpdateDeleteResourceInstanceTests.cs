@@ -27,6 +27,7 @@ public class UpdateDeleteResourceInstanceTests : IntegrationTestBase
     private readonly ResourcesGroupReadModelFactory _groups;
 
     private record InstanceSummary(Guid Id, string Name);
+    private record PagedInstancesResponse(List<InstanceSummary> Items, Guid? NextCursor);
 
     public UpdateDeleteResourceInstanceTests(ThingsBooksyWebAppFactory factory) : base(factory)
     {
@@ -268,9 +269,9 @@ public class UpdateDeleteResourceInstanceTests : IntegrationTestBase
         // Assert — not in default GET list
         var listResponse = await client.GetResourceInstancesAsync(resourceTypeId: typeId);
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
-        var list = await listResponse.Content.ReadFromJsonAsync<List<InstanceSummary>>(JsonOptions);
+        var list = await listResponse.Content.ReadFromJsonAsync<PagedInstancesResponse>(JsonOptions);
         Assert.NotNull(list);
-        Assert.DoesNotContain(list, i => i.Id == instanceId);
+        Assert.DoesNotContain(list.Items, i => i.Id == instanceId);
     }
 
     // -----------------------------------------------------------------------------------------

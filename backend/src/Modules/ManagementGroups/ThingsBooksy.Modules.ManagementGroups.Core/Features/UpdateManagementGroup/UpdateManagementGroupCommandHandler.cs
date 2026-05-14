@@ -29,8 +29,10 @@ internal sealed class UpdateManagementGroupCommandHandler : ICommandHandler<Upda
         if (string.IsNullOrWhiteSpace(command.Name))
             throw new ManagementGroupsDomainException("Group name cannot be empty.");
 
-        if (await _provider.NameExistsForOtherGroupAsync(command.Name, command.GroupId, cancellationToken))
-            throw new ManagementGroupsDomainException($"Group name '{command.Name}' is already taken.");
+        var trimmedName = command.Name.Trim();
+
+        if (await _provider.OwnerNameExistsForOtherGroupAsync(command.RequesterId, trimmedName, command.GroupId, cancellationToken))
+            throw new GroupNameAlreadyTakenException(command.Name);
 
         group.Update(command, _clock.CurrentDate());
         await _provider.SaveChangesAsync(cancellationToken);

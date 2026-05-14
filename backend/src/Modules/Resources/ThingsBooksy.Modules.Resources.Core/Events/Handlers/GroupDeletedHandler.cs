@@ -21,14 +21,7 @@ internal sealed class GroupDeletedHandler : IEventHandler<GroupDeleted>
     {
         var now = DateTime.UtcNow;
 
-        await _dbContext.ResourceTypes
-            .IgnoreQueryFilters()
-            .Where(x => x.GroupId == @event.GroupId && x.DeletedAt == null)
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(x => x.DeletedAt, now)
-                .SetProperty(x => x.UpdatedAt, now),
-                cancellationToken);
-
+        // Soft-delete all resource instances for the group (idempotent — zero rows matched is a no-op)
         await _dbContext.ResourceInstances
             .IgnoreQueryFilters()
             .Where(x => x.GroupId == @event.GroupId && x.DeletedAt == null)
@@ -37,14 +30,20 @@ internal sealed class GroupDeletedHandler : IEventHandler<GroupDeleted>
                 .SetProperty(x => x.UpdatedAt, now),
                 cancellationToken);
 
+        // Hard-delete all resource types for the group — DB cascade removes ResourcePropertyDefinitions
+        await _dbContext.ResourceTypes
+            .IgnoreQueryFilters()
+            .Where(x => x.GroupId == @event.GroupId)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        // Remove group read-model if present (idempotent — null guard)
         var groupReadModel = await _dbContext.GroupReadModels
             .FirstOrDefaultAsync(x => x.Id == @event.GroupId, cancellationToken);
 
         if (groupReadModel is not null)
         {
             _dbContext.GroupReadModels.Remove(groupReadModel);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

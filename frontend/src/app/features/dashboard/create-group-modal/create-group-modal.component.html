@@ -1,0 +1,116 @@
+<tb-modal
+  [open]="open()"
+  [title]="title()"
+  (close)="onClose()"
+>
+  <form
+    class="group-form"
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    novalidate
+    aria-label="Group form"
+  >
+    <!-- Name field -->
+    <div class="group-form__field">
+      <label class="group-form__label" for="group-name">
+        Name <span class="group-form__required" aria-hidden="true">*</span>
+      </label>
+      <input
+        #nameInput
+        id="group-name"
+        type="text"
+        class="group-form__input"
+        formControlName="name"
+        autocomplete="off"
+        maxlength="100"
+        aria-describedby="group-name-hint"
+        [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched ? 'true' : null"
+      />
+
+      <!-- Async validation hint (aria-live so screen readers announce changes) -->
+      <div
+        id="group-name-hint"
+        class="group-form__hint"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        @if (form.controls.name.pending) {
+          <span class="group-form__hint--pending">Checking availability…</span>
+        } @else if (form.controls.name.errors?.['taken'] && form.controls.name.dirty) {
+          <span class="group-form__hint--error">This name is already taken</span>
+        } @else if (form.controls.name.valid && form.controls.name.dirty) {
+          <span class="group-form__hint--success">Name is available</span>
+        }
+      </div>
+
+      <!-- Sync validation errors -->
+      @if (form.controls.name.invalid && !form.controls.name.pending && form.controls.name.touched) {
+        <div class="group-form__error" role="alert">
+          @if (form.controls.name.errors?.['required']) {
+            <span>Name is required.</span>
+          }
+          @if (form.controls.name.errors?.['maxlength']) {
+            <span>Name must be 100 characters or fewer.</span>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Description field -->
+    <div class="group-form__field">
+      <label class="group-form__label" for="group-description">
+        Description
+      </label>
+      <div class="group-form__textarea-wrapper">
+        <textarea
+          id="group-description"
+          class="group-form__textarea"
+          formControlName="description"
+          rows="4"
+          maxlength="500"
+          placeholder="Optional description…"
+          aria-describedby="group-desc-counter"
+        ></textarea>
+        <span
+          id="group-desc-counter"
+          class="group-form__counter"
+          [class.group-form__counter--warning]="descLength() >= 450 && descLength() < 500"
+          [class.group-form__counter--danger]="descLength() >= 500"
+          aria-live="polite"
+          aria-label="{{ descLength() }} of 500 characters used"
+        >{{ descLength() }}/500</span>
+      </div>
+
+      @if (form.controls.description.invalid && form.controls.description.touched) {
+        <div class="group-form__error" role="alert">
+          @if (form.controls.description.errors?.['maxlength']) {
+            <span>Description must be 500 characters or fewer.</span>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div class="group-form__footer">
+      <button
+        type="button"
+        class="group-form__btn group-form__btn--ghost"
+        (click)="onClose()"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="group-form__btn group-form__btn--primary"
+        [disabled]="form.invalid || form.pending || submitting()"
+        [attr.aria-busy]="submitting() ? 'true' : 'false'"
+        [attr.aria-disabled]="form.invalid || form.pending || submitting() ? 'true' : null"
+      >
+        @if (submitting()) {
+          <span class="group-form__spinner" aria-hidden="true"></span>
+        }
+        {{ submitLabel() }}
+      </button>
+    </div>
+  </form>
+</tb-modal>

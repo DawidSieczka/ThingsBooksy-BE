@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ThingsBooksy.Modules.Resources.Core.DAL;
+using ThingsBooksy.Modules.Resources.Core.Exceptions;
 using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceInstance;
 using ThingsBooksy.Modules.Resources.Core.Features.CreateResourceType;
 using ThingsBooksy.Modules.Resources.Core.Features.DeleteResourceInstance;
@@ -14,6 +15,7 @@ using ThingsBooksy.Modules.Resources.Core.Features.GetResourceTypes;
 using ThingsBooksy.Modules.Resources.Core.Features.UpdateResourceInstance;
 using ThingsBooksy.Modules.Resources.Core.Features.UpdateResourceType;
 using ThingsBooksy.Shared.Abstractions.Commands;
+using ThingsBooksy.Shared.Abstractions.Exceptions;
 using ThingsBooksy.Shared.Abstractions.Queries;
 using ThingsBooksy.Shared.Infrastructure.DataProviders;
 using ThingsBooksy.Shared.Infrastructure.Messaging.Outbox;
@@ -31,12 +33,13 @@ internal static class Extensions
     public static IServiceCollection AddResourcesCore(this IServiceCollection services, IConfiguration configuration)
     {
         return services
+            .AddSingleton<IExceptionToResponseMapper, ResourcesExceptionToResponseMapper>()
             .AddScoped<ICommandHandler<CreateResourceInstanceCommand, Guid>, CreateResourceInstanceCommandHandler>()
             .AddScoped<ICommandHandler<CreateResourceTypeCommand, Guid>, CreateResourceTypeCommandHandler>()
             .AddScoped<IQueryHandler<GetResourceTypeQuery, GetResourceTypeQueryResult?>, GetResourceTypeQueryHandler>()
             .AddScoped<IQueryHandler<GetResourceTypesQuery, IReadOnlyList<GetResourceTypesQueryResult>>, GetResourceTypesQueryHandler>()
             .AddScoped<IQueryHandler<GetResourceInstanceQuery, GetResourceInstanceQueryResult?>, GetResourceInstanceQueryHandler>()
-            .AddScoped<IQueryHandler<GetResourceInstancesQuery, IReadOnlyList<GetResourceInstancesQueryResult>>, GetResourceInstancesQueryHandler>()
+            .AddScoped<IQueryHandler<GetResourceInstancesQuery, GetResourceInstancesQueryResult>, GetResourceInstancesQueryHandler>()
             .AddScoped<ICommandHandler<UpdateResourceInstanceCommand>, UpdateResourceInstanceCommandHandler>()
             .AddScoped<ICommandHandler<DeleteResourceInstanceCommand>, DeleteResourceInstanceCommandHandler>()
             .AddScoped<ICommandHandler<UpdateResourceTypeCommand>, UpdateResourceTypeCommandHandler>()

@@ -1,0 +1,33 @@
+@use 'styles/tokens' as *;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  color: var(--color-text-primary);
+}
+
+.dashboard-page {
+  position: relative;
+  z-index: 2;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 88px var(--space-6) 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+
+  @media (min-width: $breakpoint-lg) {
+    padding-left: var(--space-14);
+    padding-right: var(--space-14);
+  }
+
+  &__panels {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+
+    @media (min-width: $breakpoint-lg) {
+      grid-template-columns: 1fr 336px;
+    }
+  }
+}

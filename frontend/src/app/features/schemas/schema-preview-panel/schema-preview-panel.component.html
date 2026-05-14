@@ -1,0 +1,61 @@
+<section class="schema-preview-panel" aria-labelledby="schema-preview-heading">
+  <header class="schema-preview-panel__header">
+    <span class="schema-preview-panel__eyebrow">Live preview</span>
+    <h2 id="schema-preview-heading" class="schema-preview-panel__title">
+      {{ name() || 'Untitled schema' }}
+    </h2>
+    @if (description()) {
+      <p class="schema-preview-panel__description">{{ description() }}</p>
+    }
+  </header>
+
+  @if (fields().length === 0) {
+    <p class="schema-preview-panel__empty">
+      Add a field to see how the form will look.
+    </p>
+  } @else {
+    <form class="schema-preview-panel__form" (submit)="$event.preventDefault()">
+      @for (field of fields(); track field.id) {
+        <div class="schema-preview-panel__field">
+          <label class="schema-preview-panel__field-label">
+            {{ field.name || 'Untitled field' }}
+            @if (field.isRequired) {
+              <span class="schema-preview-panel__required" aria-label="Required">*</span>
+            }
+          </label>
+
+          @switch (field.dataType) {
+            @case ('Text') {
+              <input
+                class="schema-preview-panel__input"
+                type="text"
+                disabled
+                [attr.placeholder]="'Enter ' + (field.name || 'value')"
+              />
+            }
+            @case ('Number') {
+              <input
+                class="schema-preview-panel__input"
+                type="number"
+                disabled
+                [attr.placeholder]="'0'"
+              />
+            }
+            @case ('Boolean') {
+              <div class="schema-preview-panel__toggle">
+                <label class="schema-preview-panel__radio">
+                  <input type="radio" [name]="'preview-' + field.id" disabled />
+                  <span>Yes</span>
+                </label>
+                <label class="schema-preview-panel__radio">
+                  <input type="radio" [name]="'preview-' + field.id" disabled />
+                  <span>No</span>
+                </label>
+              </div>
+            }
+          }
+        </div>
+      }
+    </form>
+  }
+</section>

@@ -1,0 +1,91 @@
+<section class="schema-form-panel" aria-labelledby="schema-form-heading">
+  <header class="schema-form-panel__header">
+    <h2 id="schema-form-heading" class="schema-form-panel__title">Schema</h2>
+  </header>
+
+  <div class="schema-form-panel__field-group">
+    <label class="schema-form-panel__label" for="schema-name">Name</label>
+    <input
+      id="schema-name"
+      class="schema-form-panel__input"
+      [class.schema-form-panel__input--error]="nameError()"
+      type="text"
+      [value]="name()"
+      (input)="onNameInput($event)"
+      placeholder="e.g. Camera"
+      maxlength="100"
+      autocomplete="off"
+    />
+    @if (nameError()) {
+      <span class="schema-form-panel__error" role="alert">{{ nameError() }}</span>
+    }
+  </div>
+
+  <div class="schema-form-panel__field-group">
+    <label class="schema-form-panel__label" for="schema-description">Description</label>
+    <textarea
+      id="schema-description"
+      class="schema-form-panel__textarea"
+      [value]="description() ?? ''"
+      (input)="onDescriptionInput($event)"
+      placeholder="Optional description"
+      maxlength="500"
+      rows="2"
+    ></textarea>
+  </div>
+
+  <div class="schema-form-panel__fields">
+    <div class="schema-form-panel__fields-header">
+      <span class="schema-form-panel__label">Fields</span>
+      <span class="schema-form-panel__field-count">{{ fields().length }}</span>
+    </div>
+
+    @if (fields().length === 0) {
+      <p class="schema-form-panel__fields-empty">
+        No fields yet. Click "+ Add field" to start.
+      </p>
+    } @else {
+      <div
+        class="schema-form-panel__fields-list"
+        cdkDropList
+        (cdkDropListDropped)="onDrop($event)"
+      >
+        @for (field of fields(); track field.id; let i = $index) {
+          <div cdkDrag class="schema-form-panel__field-drag">
+            <tb-field-row
+              [field]="field"
+              [index]="i"
+              [nameError]="fieldNameErrors()[field.id]"
+              (nameChange)="onFieldName(field.id, $event)"
+              (typeChange)="onFieldType(field.id, $event)"
+              (requiredChange)="onFieldRequired(field.id, $event)"
+              (remove)="onFieldRemove(field.id)"
+            />
+          </div>
+        }
+      </div>
+    }
+
+    <button
+      type="button"
+      class="schema-form-panel__add-field"
+      (click)="onAddField()"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+      Add field
+    </button>
+  </div>
+</section>

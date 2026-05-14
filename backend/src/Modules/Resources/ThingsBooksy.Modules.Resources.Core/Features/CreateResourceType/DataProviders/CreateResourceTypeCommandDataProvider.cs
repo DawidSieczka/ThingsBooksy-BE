@@ -18,8 +18,10 @@ internal sealed class CreateResourceTypeCommandDataProvider : ICreateResourceTyp
     public Task<GroupReadModel?> GetGroupAsync(Guid groupId, CancellationToken ct)
         => _dbContext.GroupReadModels.FirstOrDefaultAsync(g => g.Id == groupId, ct);
 
-    public Task<bool> NameExistsAsync(Guid groupId, string name, CancellationToken ct)
-        => _dbContext.ResourceTypes.AnyAsync(t => t.GroupId == groupId && t.Name == name, ct);
+    public Task<bool> ExistsByGroupAndNameAsync(Guid groupId, string normalizedName, Guid? excludeId, CancellationToken ct)
+        => _dbContext.ResourceTypes.IgnoreQueryFilters().AnyAsync(
+            t => t.GroupId == groupId && t.Name == normalizedName && (excludeId == null || t.Id != excludeId.Value) && t.DeletedAt == null,
+            ct);
 
     public Task AddResourceTypeAsync(ResourceType resourceType, CancellationToken ct)
         => _dbContext.ResourceTypes.AddAsync(resourceType, ct).AsTask();

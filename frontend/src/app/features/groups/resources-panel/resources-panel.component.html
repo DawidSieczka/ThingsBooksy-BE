@@ -1,0 +1,73 @@
+<section class="resources-panel" aria-labelledby="resources-panel-heading">
+  <header class="resources-panel__header">
+    <h2 id="resources-panel-heading" class="resources-panel__title">Resources</h2>
+    <tb-count-chip
+      [count]="resources().length"
+      [accent]="nextCursor() ? 'secondary' : 'primary'"
+      aria-label="Resource count"
+    />
+    <span class="resources-panel__spacer" aria-hidden="true"></span>
+    @if (isOwner()) {
+      <button
+        type="button"
+        class="resources-panel__add-btn"
+        aria-label="Add resource"
+        (click)="addResource.emit()"
+      >
+        <tb-icon-plus [size]="14" />
+        Add resource
+      </button>
+    }
+  </header>
+
+  @if (resources().length === 0) {
+    <p class="resources-panel__empty">
+      No resources yet. Add the first resource to a schema.
+    </p>
+  } @else {
+    <div class="resources-panel__table-wrapper" role="region" aria-label="Resources list">
+      <table class="resources-panel__table">
+        <thead>
+          <tr>
+            <th scope="col" class="resources-panel__th">Name</th>
+            <th scope="col" class="resources-panel__th">Type</th>
+            <th scope="col" class="resources-panel__th">Status</th>
+            <th scope="col" class="resources-panel__th resources-panel__th--icon" aria-label="Row action"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (resource of resources(); track resource.id) {
+            <tr class="resources-panel__row">
+              <td class="resources-panel__td resources-panel__td--name">{{ resource.name ?? '—' }}</td>
+              <td class="resources-panel__td resources-panel__td--type">
+                {{ getSchemaName(resource.resourceTypeId) }}
+              </td>
+              <td class="resources-panel__td resources-panel__td--status">
+                <span class="resources-panel__badge resources-panel__badge--available">
+                  Available (mocked)
+                </span>
+              </td>
+              <td class="resources-panel__td resources-panel__td--chevron" aria-hidden="true">
+                <tb-icon-chevron [size]="12" direction="right" />
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div
+      tbInfiniteScroll
+      [tbInfiniteScrollDisabled]="loadingMore() || !nextCursor()"
+      (loadMore)="loadMore.emit()"
+      class="resources-panel__sentinel"
+      aria-hidden="true"
+    ></div>
+
+    @if (loadingMore()) {
+      <div class="resources-panel__spinner" role="status" aria-label="Loading more resources">
+        <span class="resources-panel__spinner-ring"></span>
+      </div>
+    }
+  }
+</section>

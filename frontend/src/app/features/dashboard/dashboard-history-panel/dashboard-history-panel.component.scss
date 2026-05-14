@@ -1,0 +1,187 @@
+@use 'styles/tokens' as *;
+
+:host { display: block; }
+
+.panel {
+  background: var(--color-overlay-card);
+  backdrop-filter: blur(var(--blur-card));
+  -webkit-backdrop-filter: blur(var(--blur-card));
+  border: 1px solid oklch(65% 0.1 280 / 0.14);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-card);
+  padding: 26px 28px;
+}
+
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  &__title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__title {
+    margin: 0;
+    font-family: var(--font-family-display);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-lg);
+    color: var(--color-text-primary);
+  }
+
+  &__view-all {
+    padding: 6px 12px;
+    background: none;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    border-radius: 8px;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: var(--transition-base);
+
+    &:hover {
+      border-color: var(--color-border-strong);
+      color: var(--color-text-primary);
+      background: var(--color-surface-raised);
+    }
+  }
+
+  &__table {
+    display: flex;
+    flex-direction: column;
+  }
+
+  // Mobile-first: 2-column layout (Resource + Status), no Time, no Amount
+  &__head-row,
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr 110px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 6px;
+  }
+
+  &__col-time,
+  &__col-amount {
+    display: none;
+  }
+
+  // Show Amount column from $breakpoint-sm (576px)
+  @media (min-width: $breakpoint-sm) {
+    &__head-row,
+    &__row {
+      grid-template-columns: 1fr 88px 110px;
+    }
+
+    &__col-amount {
+      display: revert;
+    }
+  }
+
+  // Show Time column from $breakpoint-lg (960px)
+  @media (min-width: $breakpoint-lg) {
+    &__head-row,
+    &__row {
+      grid-template-columns: 1fr 126px 88px 118px;
+    }
+
+    &__col-time {
+      display: revert;
+    }
+  }
+
+  &__head-row {
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-uppercase);
+    text-transform: uppercase;
+  }
+
+  &__row {
+    border-bottom: 1px solid var(--color-border);
+    transition: background var(--transition-base);
+    cursor: pointer;
+
+    &:hover {
+      background: oklch(18% 0.025 265 / 0.65);
+      border-bottom-color: transparent;
+    }
+
+    &:last-child { border-bottom: none; }
+  }
+
+  &__resource {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+
+    &--primary   { background: var(--color-accent-primary); }
+    &--secondary { background: var(--color-accent-secondary); }
+    &--tertiary  { background: var(--color-accent-tertiary); }
+  }
+
+  &__resource-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__resource-name {
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__resource-meta {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  &__time {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  &__amount {
+    font-family: var(--font-family-display);
+    font-weight: var(--font-weight-bold);
+    background: var(--gradient-brand);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  &__empty {
+    margin: 0;
+    padding: var(--space-8) 0;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+}

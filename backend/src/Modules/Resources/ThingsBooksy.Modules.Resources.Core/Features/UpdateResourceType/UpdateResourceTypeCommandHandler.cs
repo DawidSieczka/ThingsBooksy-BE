@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +32,12 @@ internal sealed class UpdateResourceTypeCommandHandler : ICommandHandler<UpdateR
 
         if (group is null || group.OwnerId != command.RequesterId)
             throw new ResourcesForbiddenException("Only the group owner may update a resource type.");
+
+        var normalizedName = command.Name.Trim();
+        var nameExists = await _dataProvider.ExistsByGroupAndNameAsync(resourceType.GroupId, normalizedName, excludeId: command.TypeId, cancellationToken);
+
+        if (nameExists)
+            throw new ResourceTypeNameAlreadyExistsException(resourceType.GroupId, normalizedName);
 
         resourceType.Update(command, _clock.CurrentDate());
 
