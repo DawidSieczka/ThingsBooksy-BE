@@ -9,5 +9,6 @@ internal record GetManagementGroupQueryResult(
     string Name,
     string? Description,
     Guid OwnerId,
-    DateTime CreatedAt,
+    DateTimeOffset CreatedAt,
+    int MemberCount,
     IReadOnlyList<ManagementGroupMemberResult> Members);

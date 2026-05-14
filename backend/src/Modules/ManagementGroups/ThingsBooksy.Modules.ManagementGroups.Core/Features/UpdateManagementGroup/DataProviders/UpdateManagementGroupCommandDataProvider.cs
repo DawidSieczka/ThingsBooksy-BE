@@ -17,8 +17,9 @@ internal sealed class UpdateManagementGroupCommandDataProvider : IUpdateManageme
     public Task<ManagementGroup?> GetByIdAsync(Guid groupId, CancellationToken ct)
         => _dbContext.ManagementGroups.FirstOrDefaultAsync(x => x.Id == groupId, ct);
 
-    public Task<bool> NameExistsForOtherGroupAsync(string name, Guid excludedGroupId, CancellationToken ct)
-        => _dbContext.ManagementGroups.IgnoreQueryFilters().AnyAsync(x => x.Name == name && x.Id != excludedGroupId, ct);
+    public Task<bool> OwnerNameExistsForOtherGroupAsync(Guid ownerId, string name, Guid excludedGroupId, CancellationToken ct)
+        => _dbContext.ManagementGroups.AnyAsync(
+            x => x.OwnerId == ownerId && EF.Functions.ILike(x.Name, name) && x.Id != excludedGroupId, ct);
 
     public Task SaveChangesAsync(CancellationToken ct)
         => _dbContext.SaveChangesAsync(ct);

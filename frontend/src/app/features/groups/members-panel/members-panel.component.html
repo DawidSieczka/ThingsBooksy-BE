@@ -1,0 +1,62 @@
+<section class="panel members-panel">
+  <header class="members-panel__head">
+    <div class="members-panel__title-wrap">
+      <h2 class="members-panel__title">Members</h2>
+      <tb-count-chip [count]="memberCount()" />
+    </div>
+    <span class="members-panel__spacer" aria-hidden="true"></span>
+    <button
+      type="button"
+      class="members-panel__add-btn"
+      disabled
+      aria-disabled="true"
+      title="Coming soon"
+    >
+      + Add member
+    </button>
+  </header>
+
+  <ul
+    class="members-panel__list"
+    role="list"
+    tbInfiniteScroll
+    [tbInfiniteScrollDisabled]="infiniteScrollDisabled()"
+    (loadMore)="loadMore.emit()"
+  >
+    @for (member of members(); track member.memberId) {
+      <li class="members-panel__row">
+        <tb-avatar
+          [id]="member.userId ?? ''"
+          [initials]="getInitials(member.email)"
+          size="sm"
+        />
+        <div class="members-panel__info">
+          <span class="members-panel__email">{{ member.email }}</span>
+        </div>
+        <div class="members-panel__role">
+          @if (member.isOwner) {
+            <span
+              class="members-panel__badge members-panel__badge--admin"
+              aria-label="Admin"
+            >Admin</span>
+          } @else {
+            <span
+              class="members-panel__badge members-panel__badge--member"
+              aria-label="Member"
+            >Member</span>
+          }
+        </div>
+      </li>
+    } @empty {
+      <li class="members-panel__empty" role="status">No members yet.</li>
+    }
+
+    @if (loadingMore()) {
+      <li class="members-panel__spinner" aria-live="polite" aria-label="Loading more members">
+        <span class="members-panel__spinner-dot" aria-hidden="true"></span>
+        <span class="members-panel__spinner-dot" aria-hidden="true"></span>
+        <span class="members-panel__spinner-dot" aria-hidden="true"></span>
+      </li>
+    }
+  </ul>
+</section>

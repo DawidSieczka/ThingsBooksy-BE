@@ -68,8 +68,9 @@ namespace ThingsBooksy.Modules.ManagementGroups.Migrations.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
-                        .IsUnique();
+                    b.HasIndex("OwnerId", "Name")
+                        .IsUnique()
+                        .HasFilter("\"DeletedAt\" IS NULL");
 
                     b.ToTable("ManagementGroups", "management_groups");
                 });

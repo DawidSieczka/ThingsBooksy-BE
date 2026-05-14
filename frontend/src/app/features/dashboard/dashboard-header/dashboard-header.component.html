@@ -1,0 +1,17 @@
+<nav class="dashboard-header" aria-label="Primary">
+  <div class="dashboard-header__logo">ThingsBooksy</div>
+
+  <ul class="dashboard-header__nav" role="list">
+    <li><a href="#" class="active" (click)="$event.preventDefault()">Dashboard</a></li>
+    <li><a href="#" (click)="$event.preventDefault()">Browse resources</a></li>
+    <li><a href="#" (click)="$event.preventDefault()">My bookings</a></li>
+    <li><a href="#" (click)="$event.preventDefault()">Admin panel</a></li>
+  </ul>
+
+  <tb-user-menu
+    [name]="userName()"
+    [initials]="userInitials()"
+    (settings)="settingsClicked.emit()"
+    (logout)="logoutClicked.emit()"
+  />
+</nav>

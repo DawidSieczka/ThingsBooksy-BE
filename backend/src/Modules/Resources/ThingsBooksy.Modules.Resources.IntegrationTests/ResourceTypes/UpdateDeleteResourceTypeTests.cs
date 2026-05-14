@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +16,7 @@ using Xunit;
 namespace ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes;
 
 /// <summary>
-/// Integration tests for PUT /resources/types/{id} and DELETE /resources/types/{id} (T045–T048).
+/// Integration tests for PUT /resources/types/{id} and DELETE /resources/types/{id}.
 ///
 /// GroupReadModel rows are inserted directly via ResourcesGroupReadModelFactory to avoid
 /// depending on async event propagation from the ManagementGroups pipeline.
@@ -22,6 +24,11 @@ namespace ThingsBooksy.Modules.Resources.IntegrationTests.ResourceTypes;
 [Collection("IntegrationTestCollection")]
 public class UpdateDeleteResourceTypeTests : IntegrationTestBase
 {
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+
+    private record InstanceSummary(Guid Id, string Name);
+    private record PagedInstancesResponse(List<InstanceSummary> Items, Guid? NextCursor);
+
     private readonly ResourcesUserFactory _users;
     private readonly ResourcesGroupReadModelFactory _groups;
 
@@ -251,36 +258,55 @@ public class UpdateDeleteResourceTypeTests : IntegrationTestBase
     }
 
     // -----------------------------------------------------------------------------------------
-    // DELETE /resources/types/{id} — 400 Type has instances (business rule)
+    // DELETE /resources/types/{id} — cascade soft-deletes instances (T074)
     // -----------------------------------------------------------------------------------------
 
     [Fact]
-    public async Task DeleteResourceType_WithExistingInstances_Returns400()
+    public async Task DeleteResourceType_CascadesToInstances()
     {
-        // Arrange — create a type and add an instance to it
-        var owner = await _users.CreateUserAsync("delrt_hasinstances_owner@test.com");
+        // Arrange — create a type with 3 instances
+        var owner = await _users.CreateUserAsync("delrt_cascade_owner@test.com");
         var group = await _groups.CreateGroupReadModelAsync(owner.UserId);
         var client = new ResourcesTestClient(Factory, owner);
 
-        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Type With Instance");
-        await client.CreateResourceInstanceAndGetIdAsync(typeId, "Instance A");
+        var typeId = await client.CreateResourceTypeAndGetIdAsync(group.Id, "Type With Instances");
+        var instanceId1 = await client.CreateResourceInstanceAndGetIdAsync(typeId, "Instance A");
+        var instanceId2 = await client.CreateResourceInstanceAndGetIdAsync(typeId, "Instance B");
+        var instanceId3 = await client.CreateResourceInstanceAndGetIdAsync(typeId, "Instance C");
 
-        // Act — attempt to delete the type that still has an instance
+        // Act — delete the type; cascade should soft-delete all instances
         var response = await client.DeleteResourceTypeAsync(typeId);
 
-        // Assert — 400 Bad Request (type has instances)
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        // Assert — 204 No Content
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
-        // Assert — type still exists in DB (not deleted)
+        // Assert — type is hard-deleted (NOT found even with IgnoreQueryFilters)
         var resourceType = await client.GetResourceTypeFromDbAsync(typeId);
-        Assert.NotNull(resourceType);
+        Assert.Null(resourceType);
 
-        // Assert — instance also still exists
-        using var scope = CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ResourcesDbContext>();
-        var instanceCount = await db.ResourceInstances
-            .IgnoreQueryFilters()
-            .CountAsync(i => i.ResourceTypeId == typeId);
-        Assert.Equal(1, instanceCount);
+        // Assert — GET /resources/types/{id} returns 404
+        var getTypeResponse = await client.GetResourceTypeAsync(typeId);
+        Assert.Equal(HttpStatusCode.NotFound, getTypeResponse.StatusCode);
+
+        // Assert — all 3 instances are soft-deleted (DeletedAt set)
+        var instance1 = await client.GetResourceInstanceFromDbAsync(instanceId1);
+        var instance2 = await client.GetResourceInstanceFromDbAsync(instanceId2);
+        var instance3 = await client.GetResourceInstanceFromDbAsync(instanceId3);
+
+        Assert.NotNull(instance1);
+        Assert.NotNull(instance1.DeletedAt);
+
+        Assert.NotNull(instance2);
+        Assert.NotNull(instance2.DeletedAt);
+
+        Assert.NotNull(instance3);
+        Assert.NotNull(instance3.DeletedAt);
+
+        // Assert — instances are excluded from the default (non-deleted) list
+        var listResponse = await client.GetResourceInstancesAsync(groupId: group.Id);
+        Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
+        var pagedBody = await listResponse.Content.ReadFromJsonAsync<PagedInstancesResponse>(JsonOptions);
+        Assert.NotNull(pagedBody);
+        Assert.Empty(pagedBody.Items);
     }
 }

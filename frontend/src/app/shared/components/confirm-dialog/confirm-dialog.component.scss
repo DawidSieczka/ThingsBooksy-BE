@@ -1,0 +1,84 @@
+@use 'styles/tokens' as *;
+
+:host {
+  display: contents;
+}
+
+.confirm-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+
+  &__message {
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+    margin: 0;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-3);
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    font-family: var(--font-family-base);
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast),
+      box-shadow var(--transition-fast);
+    white-space: nowrap;
+
+    &--cancel {
+      background: transparent;
+      border: 1px solid var(--color-border);
+      color: var(--color-text-secondary);
+
+      &:hover {
+        background: var(--color-surface-raised);
+        color: var(--color-text-primary);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--color-accent-primary);
+        outline-offset: 2px;
+      }
+    }
+
+    &--confirm {
+      background: var(--gradient-btn);
+      border: none;
+      color: #ffffff;
+      box-shadow: none;
+
+      &:hover {
+        box-shadow: var(--shadow-cta-hover);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--color-accent-primary);
+        outline-offset: 2px;
+      }
+
+      &.confirm-dialog__btn--danger {
+        background: var(--color-danger-bg);
+        border: 1px solid var(--color-danger-border);
+        color: var(--color-danger-text);
+
+        &:hover {
+          background: var(--color-danger);
+          border-color: transparent;
+          color: #ffffff;
+        }
+      }
+    }
+  }
+}

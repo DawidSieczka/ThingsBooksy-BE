@@ -15,6 +15,7 @@ import {
   ThingsBooksyModulesResourcesApiRequestsCreateResourceTypeRequest,
   ThingsBooksyModulesResourcesApiRequestsUpdateResourceInstanceRequest,
   ThingsBooksyModulesResourcesApiRequestsUpdateResourceTypeRequest,
+  ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesGetResourceInstancesQueryResult,
 } from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from "./http-client";
 
@@ -135,7 +136,7 @@ export class Resources<
       ...params,
     });
   /**
-   * No description
+   * @summary Returns a cursor-paginated list of resource instances. Use afterId + take for forward-only infinite scroll.
    *
    * @tags Resources
    * @name GetResourceInstances
@@ -145,18 +146,26 @@ export class Resources<
   getResourceInstances = (
     query?: {
       /** @format uuid */
-      resourceTypeId?: string;
+      resourceTypeId?: string | null;
       /** @format uuid */
-      groupId?: string;
-      includeDeleted?: boolean;
+      groupId?: string | null;
+      includeDeleted?: boolean | null;
+      /** @format uuid */
+      afterId?: string | null;
+      /** @format int32 */
+      take?: number | null;
     },
     params: RequestParams = {},
   ) =>
-    this.request<void, any>({
+    this.request<
+      ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesGetResourceInstancesQueryResult,
+      any
+    >({
       path: `/resources/instances`,
       method: "GET",
       query: query,
       secure: true,
+      format: "json",
       ...params,
     });
   /**

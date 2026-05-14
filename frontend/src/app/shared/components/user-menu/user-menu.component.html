@@ -1,0 +1,39 @@
+<div class="user-menu" (document:click)="onDocumentClick($event)">
+  <button
+    type="button"
+    class="user-btn"
+    [class.open]="isOpen()"
+    (click)="toggle($event)"
+    [attr.aria-expanded]="isOpen()"
+    aria-haspopup="menu"
+    aria-label="User menu"
+  >
+    <span class="user-avatar">{{ initials() }}</span>
+    <span class="user-name">{{ name() }}</span>
+    <span class="user-chevron"><tb-icon-chevron [size]="12" /></span>
+  </button>
+
+  @if (isOpen()) {
+    <div class="user-dropdown" role="menu" @fadeDown>
+      <button
+        type="button"
+        class="dropdown-item"
+        role="menuitem"
+        (click)="onSettings()"
+      >
+        <tb-icon-settings [size]="15" />
+        <span>Settings</span>
+      </button>
+      <div class="dropdown-divider"></div>
+      <button
+        type="button"
+        class="dropdown-item danger"
+        role="menuitem"
+        (click)="onLogout()"
+      >
+        <tb-icon-logout [size]="15" />
+        <span>Log out</span>
+      </button>
+    </div>
+  }
+</div>

@@ -9,6 +9,6 @@ namespace ThingsBooksy.Modules.ManagementGroups.Core.Features.UpdateManagementGr
 internal interface IUpdateManagementGroupCommandDataProvider : IDataProvider
 {
     Task<ManagementGroup?> GetByIdAsync(Guid groupId, CancellationToken ct);
-    Task<bool> NameExistsForOtherGroupAsync(string name, Guid excludedGroupId, CancellationToken ct);
+    Task<bool> OwnerNameExistsForOtherGroupAsync(Guid ownerId, string name, Guid excludedGroupId, CancellationToken ct);
     Task SaveChangesAsync(CancellationToken ct);
 }

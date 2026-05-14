@@ -1,0 +1,207 @@
+# Implementation Plan: Dashboard + Logout + Create-group modal
+
+**Branch**: `006-dashboard-and-logout` | **Date**: 2026-05-14 | **Spec**: `specs/006-dashboard-and-logout/spec.md`
+
+---
+
+## Summary
+
+Implement (1) backend logout with token revocation in the `Users` module, (2) frontend dashboard feature replicating the Claude Design mockup with English copy, (3) auth guard + redirect flow, (4) empty "Create new group" modal shell. Two handoff files already written: `specs/007-backend-user-profile-fields.md`, `specs/008-group-detail-view.md`.
+
+---
+
+## Technical Context
+
+**Language/Version**: C# 13 / .NET 10 (backend), TypeScript 5.x / Angular 21 (frontend)
+**Backend dependencies**: ASP.NET Core 10, Minimal API, EF Core 10, Npgsql, JWT Bearer (`Microsoft.AspNetCore.Authentication.JwtBearer`)
+**Frontend dependencies**: Angular standalone components, signals, Reactive Forms — no new npm dependencies
+**Database**: PostgreSQL 17 (schema `users` — already exists; one new table)
+**Tests**: xUnit + Respawn (BE integration), Vitest (FE unit)
+**Constraints**: No direct cross-module references; no MediatR; no Polish text in compiled FE output
+
+---
+
+## Constitution Verification
+
+| Rule | Status | Notes |
+|------|--------|-------|
+| GUID v7 only | ✅ | `Guid.CreateVersion7()` used in `TokenRevocation` factory |
+| No direct cross-module references | ✅ | All changes contained in `Users` module |
+| Tests required | ✅ | 4 integration tests planned for logout flow |
+| EF schema isolation | ✅ | Stays in existing `users` schema |
+| Entity encapsulation | ✅ | `TokenRevocation` uses `private set` + `Create` factory ≤4 params |
+| Naming conventions | ✅ | `LogoutCommand`, `LogoutHandler`, `LogoutRequest` |
+| Data provider pattern | ✅ | `ITokenRevocationDataProvider` interface + concrete |
+| Command construction in endpoints | ✅ | Endpoint builds `LogoutCommand` from claims, never bound |
+| Internals visible to | ✅ | Already in place for Users.Core |
+
+---
+
+## Backend changes (Users module only)
+
+### New domain artefact
+- `backend/src/Modules/Users/ThingsBooksy.Modules.Users.Core/Entities/TokenRevocation.cs`
+  - Properties (all `private set`): `Id`, `Jti` (string), `UserId` (Guid), `RevokedAt` (DateTime UTC), `ExpiresAt` (DateTime UTC).
+  - Factory: `Create(string jti, Guid userId, DateTime expiresAt, DateTime now)` → returns new `TokenRevocation` with `Id = Guid.CreateVersion7()`.
+- `backend/src/Modules/Users/ThingsBooksy.Modules.Users.Core/DAL/Configurations/TokenRevocationConfiguration.cs`
+  - `ToTable("token_revocations")`, PK `Id`, unique index on `Jti`, indexes on `(UserId, RevokedAt)`.
+- `backend/src/Modules/Users/ThingsBooksy.Modules.Users.Core/DAL/UsersDbContext.cs`
+  - Add `DbSet<TokenRevocation> TokenRevocations`.
+
+### Feature: Logout
+- `backend/src/Modules/Users/ThingsBooksy.Modules.Users.Core/Features/Logout/LogoutCommand.cs` — record `LogoutCommand(string Jti, Guid UserId, DateTime ExpiresAt)`.
+- `backend/src/Modules/Users/ThingsBooksy.Modules.Users.Core/Features/Logout/LogoutHandler.cs` — `ICommandHandler<LogoutCommand>`. Calls `ILogoutCommandDataProvider.RevokeAsync(...)`.
+- `backend/src/Modules/Users/ThingsBooksy.Modules.Users.Core/Features/Logout/DataProviders/ILogoutCommandDataProvider.cs` and concrete `LogoutCommandDataProvider.cs` — `RevokeAsync(jti, userId, expiresAt, now, ct)` creates `TokenRevocation` and persists via `UsersDbContext`.
+- `backend/src/Modules/Users/ThingsBooksy.Modules.Users.Api/UsersModule.cs` — add `endpoints.MapPost("/users/logout", ...)` with `.RequireAuthorization()`. Endpoint extracts `jti` and `exp` from `HttpContext.User`, builds `LogoutCommand`, dispatches. Returns `Results.Ok()`.
+
+### JWT pipeline extension
+- `backend/src/Shared/ThingsBooksy.Shared.Infrastructure/Auth/JWT/` (or wherever `JsonWebTokenManager` lives):
+  - Update `CreateToken(...)` to embed `jti` claim (`Guid.CreateVersion7().ToString()` per token).
+- `backend/src/Shared/ThingsBooksy.Shared.Infrastructure/Auth/Extensions.cs` (or equivalent):
+  - In `AddJwt(...)` add `JwtBearerEvents.OnTokenValidated` callback:
+    - Extract `jti` from `context.Principal.Claims`.
+    - Look up via `IRevokedTokenChecker` service (scoped, query `UsersDbContext.TokenRevocations` with in-memory cache `IMemoryCache` keyed by jti, TTL = remaining lifetime).
+    - If revoked: `context.Fail("Token has been revoked.")`.
+- **Interface placement**: `IRevokedTokenChecker` lives in `Shared.Abstractions/Auth/` so `Shared.Infrastructure` can depend on it without referencing any module. Implementation `RevokedTokenChecker` lives in `Users.Core/Services/` (since the underlying `TokenRevocations` table is owned by Users). Registered via `AddUsersCore(configuration)`. This preserves the modular-monolith rule that infrastructure does not depend on any specific module.
+
+### Migration
+- Project: `ThingsBooksy.Modules.Users.Migrations`
+- Name: `AddTokenRevocations`
+- Generated by `migration-agent` after `module-writer` reports `Schema changes != NONE`.
+
+### Bootstrapper / WebAppFactory
+- No change — schema `users` already in `SchemasToInclude`.
+
+### Integration tests (write after migration-agent + quality-reviewer)
+- File: `backend/src/Modules/Users/ThingsBooksy.Modules.Users.IntegrationTests/Users/LogoutEndpointTests.cs`.
+- Cases:
+  - `Logout_WithValidToken_Returns200_AndPersistsRevocation`
+  - `GetMe_AfterLogout_WithSameToken_Returns401`
+  - `Logout_TwiceWithSameToken_FirstReturns200_SecondReturns401`
+  - `Logout_WithoutToken_Returns401`
+
+---
+
+## Frontend changes
+
+### Design tokens delta
+- `frontend/src/styles/_tokens.scss`:
+  - Add `--gradient-brand: linear-gradient(115deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);`
+  - Add `--gradient-btn: linear-gradient(130deg, var(--color-accent-primary) 0%, var(--color-accent-cta-end) 100%);`
+  - Add `--grad-hover: linear-gradient(130deg, var(--color-accent-secondary), var(--color-accent-primary));`
+  - Add composite `--shadow-card: var(--shadow-card-lg), var(--shadow-card-inset);`
+  - Add `--color-backdrop: oklch(4% 0.02 260 / 0.6);`
+
+### Routing + auth
+- `frontend/src/app/core/guards/auth.guard.ts` — new. `CanActivateFn` reading `AuthService.currentUser()`; null → `router.parseUrl('/')`.
+- `frontend/src/app/app.routes.ts` — add `{ path: 'dashboard', loadChildren: () => import('./features/dashboard/dashboard.routes').then(m => m.dashboardRoutes), canActivate: [authGuard] }`. Root `''` keeps `authRoutes` but inside auth page if `isAuthenticated()` → `router.navigate(['/dashboard'])` (or via canActivate redirect).
+- `frontend/src/app/features/auth/auth.service.ts`:
+  - `signIn(...)` — after success, `router.navigate(['/dashboard'])`.
+  - `signOut()` — `httpClient.post('/users/logout', null)` (best-effort: regardless of result, clear local state + navigate to `/`).
+  - Add `displayName: Signal<string>` and `initials: Signal<string>` computed from `currentUser().email`. Logic: `email.split('@')[0].replace(/[._-]/g, ' ')` → title-case → join with space. Initials = first letter of each word, max 2, uppercase.
+- `frontend/src/app/features/auth/auth-page/auth-page.component.ts` — on init, if `isAuthenticated()` → `router.navigate(['/dashboard'])`. `PostLoginConfirmation` removed (or left as fallback).
+
+### Shared components (`frontend/src/app/shared/components/`)
+| Component | Selector | Inputs | Outputs |
+|---|---|---|---|
+| `AnimatedBackgroundComponent` | `tb-animated-background` | — | — |
+| `UserMenuComponent` | `tb-user-menu` | `name`, `initials` | `settings`, `logout` |
+| `StatusBadgeComponent` | `tb-status-badge` | `status: 'confirmed' \| 'cancelled'`, `label?` | — |
+| `CountChipComponent` | `tb-count-chip` | `count: number`, `accent?: 'primary' \| 'secondary'` | — |
+| `ModalComponent` | `tb-modal` | `open: boolean`, `title?: string` | `close: void` |
+| `IconSettingsComponent` | `tb-icon-settings` | `size?` | — |
+| `IconLogoutComponent` | `tb-icon-logout` | `size?` | — |
+| `IconChevronComponent` | `tb-icon-chevron` | `size?`, `direction?: 'down' \| 'right'` | — |
+| `IconPlusComponent` | `tb-icon-plus` | `size?` | — |
+| `IconCloseComponent` | `tb-icon-close` | `size?` | — |
+
+### Dashboard feature (`frontend/src/app/features/dashboard/`)
+| Component | Selector | Description |
+|---|---|---|
+| `DashboardPageComponent` | `tb-dashboard-page` | Orchestrates background + header + welcome + panels |
+| `DashboardHeaderComponent` | `tb-dashboard-header` | Logo + nav + user-menu |
+| `DashboardWelcomeBarComponent` | `tb-dashboard-welcome-bar` | "Hi, {name}" + date right-aligned |
+| `DashboardHistoryPanelComponent` | `tb-dashboard-history-panel` | Title + count chip + table + ghost "View all" button. Consumes mock data |
+| `DashboardAdminPanelComponent` | `tb-dashboard-admin-panel` | Title + primary "Create new group" + 2 sections ("Member of", "My groups") |
+| `CreateGroupModalComponent` | `tb-create-group-modal` | Wraps `tb-modal`, empty placeholder body |
+
+- `frontend/src/app/features/dashboard/dashboard.routes.ts` — `export const dashboardRoutes: Routes = [{ path: '', loadComponent: () => import('./dashboard-page/dashboard-page.component').then(m => m.DashboardPageComponent) }]`.
+- `frontend/src/app/features/dashboard/mock-data.ts` — exports `HISTORY_ROWS`, `MEMBER_GROUPS`, `ADMIN_GROUPS` (English text; 6 + 4 + 2 entries; `// TODO: replace with /bookings + /management-groups API`).
+
+### Refactor: animated background
+- Extract orbs / grid / rings markup + SCSS currently inside `features/auth/auth-page` into the new `shared/components/animated-background/`.
+- Replace inline usage in `AuthPageComponent` template with `<tb-animated-background />`.
+
+### API client regeneration
+- After BE Wave: run `fe-api-client-writer` so `Users.ts` includes `logout()`.
+
+---
+
+## Translations
+
+See full table in plan file (`C:\Users\dsieczka\.claude\plans\w-claude-design-przygotowa-em-peppy-abelson.md`). Summary: Cześć→Hi, Przeglądaj zasoby→Browse resources, Moje bookingsy→My bookings, Panel admina→Admin panel, Ostatnie rezerwacje→Recent reservations, Zasób→Resource, Czas→Time, Kwota→Amount, Zobacz wszystkie→View all, Utwórz nową grupę→Create new group, Jestem członkiem→Member of, Moje grupy→My groups, {N} członków→{N} members, Ustawienia→Settings, Wyloguj→Log out, "14 maj 2026"→"May 14, 2026" (DatePipe `MMM d, y`).
+
+---
+
+## Project Structure
+
+```
+backend/src/Modules/Users/ThingsBooksy.Modules.Users.Core/
+├── Entities/
+│   ├── User.cs                      (existing)
+│   ├── Role.cs                      (existing)
+│   └── TokenRevocation.cs           NEW
+├── DAL/
+│   ├── UsersDbContext.cs            edit (+ DbSet)
+│   └── Configurations/
+│       ├── UserConfiguration.cs     (existing)
+│       ├── RoleConfiguration.cs     (existing)
+│       └── TokenRevocationConfiguration.cs   NEW
+├── Features/
+│   └── Logout/
+│       ├── LogoutCommand.cs         NEW
+│       ├── LogoutHandler.cs         NEW
+│       └── DataProviders/
+│           ├── ILogoutCommandDataProvider.cs   NEW
+│           └── LogoutCommandDataProvider.cs    NEW
+└── Services/
+    ├── IRevokedTokenChecker.cs      NEW
+    └── RevokedTokenChecker.cs       NEW
+
+backend/src/Modules/Users/ThingsBooksy.Modules.Users.Api/
+└── UsersModule.cs                   edit (+ /users/logout endpoint)
+
+backend/src/Modules/Users/ThingsBooksy.Modules.Users.Migrations/
+└── Migrations/                      NEW: AddTokenRevocations.cs (via migration-agent)
+
+backend/src/Shared/ThingsBooksy.Shared.Infrastructure/Auth/JWT/
+└── (CreateToken updated to emit jti claim)
+
+backend/src/Modules/Users/ThingsBooksy.Modules.Users.IntegrationTests/
+└── Users/
+    └── LogoutEndpointTests.cs       NEW
+
+frontend/src/
+├── styles/_tokens.scss              edit (+ gradients, composite shadow, backdrop color)
+├── app/
+│   ├── app.routes.ts                edit (+ /dashboard route)
+│   ├── core/
+│   │   ├── guards/auth.guard.ts     NEW
+│   │   └── index.ts                 edit (re-export guard)
+│   ├── features/
+│   │   ├── auth/auth.service.ts     edit (logout call + displayName/initials)
+│   │   ├── auth/auth-page/...       edit (redirect on auth)
+│   │   └── dashboard/               NEW (6 components + routes + mock-data)
+│   └── shared/components/           NEW (10 atoms)
+```
+
+---
+
+## Verification
+
+- `dotnet build backend/ThingsBooksy.slnx` → success.
+- `dotnet test backend/ThingsBooksy.slnx --filter Users` → 4 new tests + all existing pass.
+- `cd frontend && npm run build` → success.
+- `cd frontend && npm test` → all existing pass + new component tests.
+- `cd frontend && npm run lint` → 0 errors.
+- Manual smoke per acceptance scenarios in `spec.md`.

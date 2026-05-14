@@ -1,11 +1,14 @@
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ThingsBooksy.Modules.Users.Core.DAL;
 using ThingsBooksy.Modules.Users.Core.Features.GetUser;
+using ThingsBooksy.Modules.Users.Core.Features.Logout;
 using ThingsBooksy.Modules.Users.Core.Features.SignIn;
 using ThingsBooksy.Modules.Users.Core.Features.SignUp;
 using ThingsBooksy.Modules.Users.Core.Services;
+using ThingsBooksy.Shared.Abstractions.Auth;
 using ThingsBooksy.Shared.Abstractions.Commands;
 using ThingsBooksy.Shared.Abstractions.Queries;
 using ThingsBooksy.Shared.Infrastructure;
@@ -32,10 +35,14 @@ internal static class Extensions
             // Command handlers
             .AddScoped<ICommandHandler<SignUpCommand>, SignUpHandler>()
             .AddScoped<ICommandHandler<SignInCommand>, SignInHandler>()
+            .AddScoped<ICommandHandler<LogoutCommand>, LogoutCommandHandler>()
             // Query handlers
             .AddScoped<IQueryHandler<GetUserQuery, GetUserQueryResult?>, GetUserQueryHandler>()
             // Data providers
             .AddDataProviders([typeof(Extensions).Assembly])
+            // Services
+            .AddMemoryCache()
+            .AddScoped<IRevokedTokenChecker, RevokedTokenChecker>()
             // Infrastructure
             .AddPostgres<UsersDbContext>(configuration, "ThingsBooksy.Modules.Users.Migrations")
             .AddOutbox<UsersDbContext>(configuration)

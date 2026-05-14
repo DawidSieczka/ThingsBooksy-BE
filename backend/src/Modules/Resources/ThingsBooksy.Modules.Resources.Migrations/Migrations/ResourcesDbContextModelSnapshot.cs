@@ -58,6 +58,9 @@ namespace ThingsBooksy.Modules.Resources.Migrations.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GroupId", "Id")
+                        .HasFilter("\"DeletedAt\" IS NULL");
+
                     b.ToTable("resource_instances", "resources");
                 });
 
@@ -141,6 +144,9 @@ namespace ThingsBooksy.Modules.Resources.Migrations.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GroupId", "Name")
+                        .IsUnique();
 
                     b.ToTable("resource_types", "resources");
                 });

@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -13,8 +14,9 @@ internal sealed class CreateManagementGroupCommandDataProvider : ICreateManageme
     public CreateManagementGroupCommandDataProvider(ManagementGroupsDbContext dbContext)
         => _dbContext = dbContext;
 
-    public Task<bool> NameExistsAsync(string name, CancellationToken ct)
-        => _dbContext.ManagementGroups.IgnoreQueryFilters().AnyAsync(x => x.Name == name, ct);
+    public Task<bool> OwnerNameExistsAsync(Guid ownerId, string name, CancellationToken ct)
+        => _dbContext.ManagementGroups.AnyAsync(
+            x => x.OwnerId == ownerId && EF.Functions.ILike(x.Name, name), ct);
 
     public Task AddAsync(ManagementGroup group, CancellationToken ct)
         => _dbContext.ManagementGroups.AddAsync(group, ct).AsTask();

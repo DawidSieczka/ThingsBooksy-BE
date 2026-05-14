@@ -25,6 +25,7 @@
   --color-danger-border:     oklch(65% 0.22 18 / 0.28);
   --color-danger-text:       oklch(75% 0.18 18);
   --color-warning:           oklch(78% 0.16 52);
+  --color-warning-text:      oklch(84% 0.14 52);
   --color-success:           oklch(72% 0.15 155);
   --color-success-bg:        oklch(75% 0.14 168 / 0.1);
   --color-success-border:    oklch(75% 0.14 168 / 0.28);
@@ -98,8 +99,25 @@
   --shadow-card-lg:      0 40px 72px oklch(4% 0.02 260 / 0.55);
   --shadow-card-ring:    0 0 0 1px oklch(72% 0.1 280 / 0.06);
   --shadow-card-inset:   inset 0 1px 0 oklch(85% 0.07 280 / 0.1);
+  --shadow-card:         var(--shadow-card-lg), var(--shadow-card-inset);
   --shadow-cta-hover:    0 10px 32px oklch(72% 0.19 284 / 0.45);
   --shadow-input-focus:  0 0 0 3px oklch(72% 0.19 284 / 0.12);
+
+  // Gradients
+  --gradient-brand:      linear-gradient(115deg, var(--color-accent-primary) 0%, var(--color-accent-secondary) 100%);
+  --gradient-btn:        linear-gradient(130deg, var(--color-accent-primary) 0%, var(--color-accent-cta-end) 100%);
+  --gradient-hover:      linear-gradient(130deg, var(--color-accent-secondary), var(--color-accent-primary));
+
+  // Colors — chip variants
+  --color-chip-primary-bg:        oklch(72% 0.19 284 / 0.10);
+  --color-chip-primary-border:    oklch(72% 0.19 284 / 0.25);
+  --color-chip-secondary-bg:      oklch(75% 0.15 168 / 0.10);
+  --color-chip-secondary-border:  oklch(75% 0.15 168 / 0.25);
+  --color-chip-tertiary-bg:       oklch(80% 0.13 58 / 0.13);
+  --color-chip-tertiary-border:   oklch(80% 0.13 58 / 0.25);
+
+  // Overlays (additional)
+  --color-backdrop:      oklch(4% 0.02 260 / 0.6);
 
   // Transitions
   --transition-fast:    150ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -112,6 +130,9 @@
   --blur-nav:           24px;
   --blur-card:          44px;
   --blur-ticker:        16px;
+
+  // Component-specific layout sizes
+  --max-width-toast:    23.75rem; // 380px — toast panel maximum width
 }
 
 // Breakpoints (SCSS variables — cannot live in :root because browsers do not

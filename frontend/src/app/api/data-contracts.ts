@@ -31,6 +31,50 @@ export interface ThingsBooksyModulesManagementGroupsApiRequestsUpdateManagementG
   description?: string | null;
 }
 
+export interface ThingsBooksyModulesManagementGroupsCoreFeaturesGetManagementGroupModelsResultsManagementGroupMemberResult {
+  /** @format uuid */
+  userId?: string;
+  /** @format date-time */
+  joinedAt?: string;
+}
+
+export interface ThingsBooksyModulesManagementGroupsCoreFeaturesGetManagementGroupGetManagementGroupQueryResult {
+  /** @format uuid */
+  id?: string;
+  name?: string | null;
+  description?: string | null;
+  /** @format uuid */
+  ownerId?: string;
+  /** @format date-time */
+  createdAt?: string;
+  /** @format int32 */
+  memberCount?: number;
+  members?:
+    | ThingsBooksyModulesManagementGroupsCoreFeaturesGetManagementGroupModelsResultsManagementGroupMemberResult[]
+    | null;
+}
+
+export interface ThingsBooksyModulesManagementGroupsCoreFeaturesGetGroupMembersGroupMemberDto {
+  /** @format uuid */
+  memberId?: string;
+  /** @format uuid */
+  userId?: string;
+  email?: string | null;
+  /** @format date-time */
+  joinedAt?: string;
+  isOwner?: boolean;
+}
+
+export interface ThingsBooksyModulesManagementGroupsCoreFeaturesGetGroupMembersGetGroupMembersQueryResult {
+  items?: ThingsBooksyModulesManagementGroupsCoreFeaturesGetGroupMembersGroupMemberDto[] | null;
+  /** @format uuid */
+  nextCursor?: string | null;
+}
+
+export interface ThingsBooksyModulesManagementGroupsCoreFeaturesIsGroupNameAvailableIsGroupNameAvailableQueryResult {
+  available?: boolean;
+}
+
 export interface ThingsBooksyModulesResourcesApiRequestsCreateResourceInstanceRequest {
   /** @format uuid */
   resourceTypeId?: string;
@@ -91,6 +135,42 @@ export interface ThingsBooksyModulesResourcesApiRequestsUpdateResourceTypeReques
   propertyDefinitions?:
     | ThingsBooksyModulesResourcesApiRequestsPropertyDefinitionUpdateInputDto[]
     | null;
+}
+
+export interface ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstanceModelsPropertyValueResult {
+  /** @format uuid */
+  propertyDefinitionId?: string;
+  propertyName?: string | null;
+  dataType?: string | null;
+  value?: string | null;
+}
+
+export interface ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesResourceInstanceRowDto {
+  /** @format uuid */
+  id?: string;
+  /** @format uuid */
+  resourceTypeId?: string;
+  /** @format uuid */
+  groupId?: string;
+  name?: string | null;
+  description?: string | null;
+  /** @format uuid */
+  ownerId?: string;
+  /** @format date-time */
+  createdAt?: string;
+  /** @format date-time */
+  deletedAt?: string | null;
+  propertyValues?:
+    | ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstanceModelsPropertyValueResult[]
+    | null;
+}
+
+export interface ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesGetResourceInstancesQueryResult {
+  items?:
+    | ThingsBooksyModulesResourcesCoreFeaturesGetResourceInstancesResourceInstanceRowDto[]
+    | null;
+  /** @format uuid */
+  nextCursor?: string | null;
 }
 
 export interface ThingsBooksyModulesUsersApiRequestsSignInRequest {

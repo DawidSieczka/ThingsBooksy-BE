@@ -1,0 +1,55 @@
+<section class="schemas-panel" aria-labelledby="schemas-panel-heading">
+  <header class="schemas-panel__header">
+    <h2 id="schemas-panel-heading" class="schemas-panel__title">Schemas</h2>
+    <tb-count-chip [count]="schemas().length" aria-label="Schema count" />
+    <span class="schemas-panel__spacer" aria-hidden="true"></span>
+    @if (isOwner()) {
+      <button
+        type="button"
+        class="schemas-panel__add-btn"
+        aria-label="Add schema"
+        (click)="addSchema.emit()"
+      >
+        <tb-icon-plus [size]="14" />
+        Add schema
+      </button>
+    }
+  </header>
+
+  @if (schemas().length === 0) {
+    <div class="schemas-panel__empty" role="status">
+      <p class="schemas-panel__empty-title">No schemas yet</p>
+      <p class="schemas-panel__empty-subtitle">Create the first schema to define a resource type.</p>
+      @if (isOwner()) {
+        <button
+          type="button"
+          class="schemas-panel__empty-cta"
+          aria-label="Add schema"
+          (click)="addSchema.emit()"
+        >
+          <tb-icon-plus [size]="14" />
+          Add schema
+        </button>
+      }
+    </div>
+  } @else {
+    <ul class="schemas-panel__list" role="list">
+      @for (schema of schemas(); track schema.id) {
+        <li class="schemas-panel__item">
+          <button
+            type="button"
+            class="schemas-panel__row"
+            [attr.aria-label]="'Open schema ' + schema.name"
+            (click)="selectSchema.emit(schema.id)"
+          >
+            <span class="schemas-panel__name">{{ schema.name }}</span>
+            <div class="schemas-panel__row-end">
+              <tb-count-chip [count]="schema.instanceCount" accent="secondary" />
+              <tb-icon-chevron [size]="12" direction="right" />
+            </div>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</section>

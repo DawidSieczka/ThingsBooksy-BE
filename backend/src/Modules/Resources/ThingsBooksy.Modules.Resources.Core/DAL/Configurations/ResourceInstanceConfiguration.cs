@@ -14,6 +14,9 @@ internal class ResourceInstanceConfiguration : IEntityTypeConfiguration<Resource
         builder.Property(x => x.Description).HasMaxLength(2000);
         builder.HasQueryFilter(x => x.DeletedAt == null);
 
+        builder.HasIndex(i => new { i.GroupId, i.Id })
+            .HasFilter("\"DeletedAt\" IS NULL");
+
         builder.HasMany(x => x.PropertyValues)
             .WithOne()
             .HasForeignKey(x => x.ResourceInstanceId)

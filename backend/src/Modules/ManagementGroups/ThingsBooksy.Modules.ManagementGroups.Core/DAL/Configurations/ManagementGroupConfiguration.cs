@@ -11,7 +11,7 @@ internal class ManagementGroupConfiguration : IEntityTypeConfiguration<Managemen
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).HasMaxLength(200).IsRequired();
         builder.Property(x => x.Description).HasMaxLength(2000);
-        builder.HasIndex(x => x.Name).IsUnique();
+        builder.HasIndex(g => new { g.OwnerId, g.Name }).IsUnique().HasFilter("\"DeletedAt\" IS NULL");
         builder.HasQueryFilter(x => x.DeletedAt == null);
 
         builder.HasMany(x => x.Members)

@@ -38,10 +38,12 @@ internal sealed class JsonWebTokenManager : IJsonWebTokenManager
         IDictionary<string, IEnumerable<string>> claims = null)
     {
         var now = _clock.CurrentDate();
+        var jti = Guid.CreateVersion7().ToString();
         var jwtClaims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, userId),
-            new(JwtRegisteredClaimNames.UniqueName, userId)
+            new(JwtRegisteredClaimNames.UniqueName, userId),
+            new(JwtRegisteredClaimNames.Jti, jti)
         };
         if (!string.IsNullOrWhiteSpace(email))
         {

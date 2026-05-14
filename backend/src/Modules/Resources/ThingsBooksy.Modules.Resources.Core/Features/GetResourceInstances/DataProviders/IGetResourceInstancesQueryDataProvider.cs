@@ -12,6 +12,6 @@ internal interface IGetResourceInstancesQueryDataProvider : IDataProvider
     Task<bool> IsOwnerAsync(Guid groupId, Guid userId, CancellationToken ct);
     Task<bool> IsMemberAsync(Guid groupId, Guid userId, CancellationToken ct);
     Task<ResourceType?> GetResourceTypeAsync(Guid resourceTypeId, CancellationToken ct);
-    Task<List<ResourceInstance>> GetInstancesAsync(Guid? resourceTypeId, Guid? groupId, bool includeDeleted, CancellationToken ct);
+    Task<List<ResourceInstance>> GetInstancesAsync(Guid? resourceTypeId, Guid? groupId, bool includeDeleted, Guid? afterId, int take, CancellationToken ct);
     Task<List<ResourcePropertyDefinition>> GetPropertyDefinitionsAsync(IEnumerable<Guid> resourceTypeIds, CancellationToken ct);
 }

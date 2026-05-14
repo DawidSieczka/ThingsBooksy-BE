@@ -108,13 +108,16 @@ internal sealed class ResourcesModule : IModule
         }).RequireAuthorization().WithTags("Resources").WithName("Get resource instance");
 
         endpoints.MapGet("/resources/instances", async (
-            Guid? resourceTypeId, Guid? groupId, bool? includeDeleted,
+            Guid? resourceTypeId, Guid? groupId, bool? includeDeleted, Guid? afterId, int? take,
             IDispatcher dispatcher, HttpContext context) =>
         {
             var callerId = GetUserId(context);
-            var result = await dispatcher.QueryAsync(new GetResourceInstancesQuery(resourceTypeId, groupId, includeDeleted ?? false, callerId));
+            var query = new GetResourceInstancesQuery(resourceTypeId, groupId, includeDeleted ?? false, callerId, afterId, take ?? 20);
+            var result = await dispatcher.QueryAsync(query);
             return Results.Ok(result);
-        }).RequireAuthorization().WithTags("Resources").WithName("Get resource instances");
+        }).RequireAuthorization().WithTags("Resources").WithName("Get resource instances")
+          .WithSummary("Returns a cursor-paginated list of resource instances. Use afterId + take for forward-only infinite scroll.")
+          .Produces<GetResourceInstancesQueryResult>();
 
         endpoints.MapPut("/resources/instances/{id:guid}", async (Guid id, UpdateResourceInstanceRequest request, IDispatcher dispatcher, HttpContext context) =>
         {

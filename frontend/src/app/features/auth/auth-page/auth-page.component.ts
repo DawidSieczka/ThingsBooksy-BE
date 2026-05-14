@@ -1,10 +1,11 @@
 import { Component, OnInit, computed, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { AnimatedBackgroundComponent } from '../../../shared/components/animated-background/animated-background.component';
 import { AnimatedCounterComponent } from '../animated-counter/animated-counter.component';
 import { AuthCardComponent } from '../auth-card/auth-card.component';
 import { AuthService } from '../auth.service';
 import { CurrentUser } from '../models/auth.model';
-import { PostLoginConfirmationComponent } from '../post-login-confirmation/post-login-confirmation.component';
 
 interface Chip {
   label: string;
@@ -19,12 +20,13 @@ interface TickerItem {
 @Component({
   selector: 'tb-auth-page',
   standalone: true,
-  imports: [AnimatedCounterComponent, AuthCardComponent, PostLoginConfirmationComponent],
+  imports: [AnimatedBackgroundComponent, AnimatedCounterComponent, AuthCardComponent],
   templateUrl: './auth-page.component.html',
   styleUrl: './auth-page.component.scss',
 })
 export class AuthPageComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly currentUser = this.authService.currentUser;
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
@@ -63,13 +65,12 @@ export class AuthPageComponent implements OnInit {
         // loadCurrentUser clears state on failure.
       }
     }
+    if (this.isAuthenticated()) {
+      void this.router.navigate(['/dashboard']);
+    }
   }
 
   onSignedIn(_user: CurrentUser): void {
-    // currentUser signal is updated by AuthService.signIn; template re-renders.
-  }
-
-  onSignOut(): void {
-    this.authService.signOut();
+    void this.router.navigate(['/dashboard']);
   }
 }

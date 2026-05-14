@@ -1,0 +1,16 @@
+@if (readonly()) {
+  <span class="type-pill type-pill--{{ value() }}">
+    <span class="type-pill__dot"></span>
+    <span class="type-pill__label">{{ label }}</span>
+  </span>
+} @else {
+  <button
+    type="button"
+    class="type-pill type-pill--{{ value() }}"
+    [attr.aria-label]="ariaLabel"
+    (click)="onCycle()"
+  >
+    <span class="type-pill__dot"></span>
+    <span class="type-pill__label">{{ label }}</span>
+  </button>
+}
